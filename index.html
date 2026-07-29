@@ -839,7 +839,58 @@ input.field:focus{border-color:var(--sys);box-shadow:0 0 14px rgba(76,201,255,.2
    без него текст длиннее буквы вываливается за пределы коробки в обе стороны
    поверх соседних элементов — именно так выглядел присланный "SQUAD". */
 .lb-rank-badge{width:26px;height:26px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Russo One';font-size:12px;color:var(--sys);border:1px solid var(--line);overflow:hidden;white-space:nowrap}
-.lb-name{flex:1;min-width:0;font-weight:800;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Обёртка для имени и титула. Растягивание и min-width:0 переехали сюда с
+   .lb-name — теперь ширину делит колонка целиком, а не одна строка имени,
+   иначе титул не смог бы обрезаться многоточием независимо от ника. */
+/* ---- Экран предпросмотра закрытых врат (см. rGatePreview) ---- */
+.gp-toptag{flex:1;text-align:center;font-family:'JetBrains Mono';font-size:11px;letter-spacing:3px;color:var(--sys)}
+/* Портрет врат приглушён и накрыт молнией: врата существуют и выглядят
+   привлекательно, но ясно, что вход закрыт. Рамка та же круглая, что у мобов
+   в бою, — одна визуальная система на всё приложение. */
+.gp-hero{
+  position:relative;width:150px;height:150px;border-radius:50%;overflow:hidden;
+  border:3px solid var(--mana);background:#000;box-shadow:0 0 30px rgba(139,92,246,.4);
+}
+.gp-hero img{width:100%;height:100%;object-fit:cover;filter:brightness(.62) saturate(.75)}
+.gp-hero-lock{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:40px;text-shadow:0 0 16px rgba(245,194,66,.9)}
+.gp-title{font-family:'Russo One';font-size:23px;margin:14px 0 4px;text-align:center}
+.gp-meta{font-family:'JetBrains Mono';font-size:11.5px;color:var(--muted);letter-spacing:.5px;text-align:center}
+.gp-sec{width:100%;font-family:'JetBrains Mono';font-size:10.5px;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);margin:20px 0 8px}
+/* Ряд монстров прокручивается вбок: во вратах их бывает больше, чем влезает
+   в ширину экрана, а переносить на вторую строку — значит ломать ритм. */
+.gp-mobs{width:100%;display:flex;gap:9px;overflow-x:auto;padding-bottom:4px}
+.gp-mob{width:66px;flex-shrink:0;text-align:center}
+/* Монстры затемнены сильнее врат: их ещё предстоит встретить. */
+.gp-mob-art{position:relative;width:62px;height:62px;border-radius:50%;overflow:hidden;background:#000;border:2px solid var(--line);margin:0 auto}
+/* Сколько таких монстров в волне. Без этой подписи обычные врата показывали
+   бы один портрет, хотя внутри их пятеро, — и объём боя оставался неясен. */
+.gp-mob-count{
+  position:absolute;right:-1px;bottom:-1px;background:var(--panel-solid);border:1px solid var(--line);
+  border-radius:9px;padding:0 5px;font-family:'JetBrains Mono';font-size:9.5px;color:var(--gold);
+}
+.gp-mob-art img{width:100%;height:100%;object-fit:cover;border-radius:0;filter:brightness(.55) saturate(.5)}
+.gp-mob-name{font-size:9.5px;color:var(--muted);margin-top:5px;line-height:1.25}
+.gp-prog{width:100%;margin-top:20px;border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:12px 14px}
+.gp-prog-row{display:flex;justify-content:space-between;font-family:'JetBrains Mono';font-size:11.5px;color:var(--muted)}
+.gp-prog-num{color:var(--gold);font-weight:700}
+.gp-prog-bar{height:6px;border-radius:3px;background:rgba(255,255,255,.1);margin-top:8px;overflow:hidden}
+.gp-prog-bar i{display:block;height:100%;background:var(--gold);border-radius:3px;transition:width .3s ease}
+.gp-prog-sub{font-size:11.5px;color:var(--muted);margin-top:8px}
+.gp-offer{
+  width:100%;margin-top:16px;border:1px solid rgba(76,201,255,.35);background:var(--panel);
+  border-radius:16px;padding:16px 14px;text-align:center;box-shadow:0 0 24px rgba(76,201,255,.1);
+}
+.gp-offer-txt{font-size:12.5px;color:var(--muted);line-height:1.5;margin-bottom:14px}
+.gp-btn2{width:100%;padding:12px;margin-top:9px;border:1px solid var(--line);border-radius:14px;background:transparent;color:var(--muted);font-size:14px;font-family:inherit;cursor:pointer}
+
+.lb-name-wrap{flex:1;min-width:0}
+.lb-name{font-weight:800;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Титул — золотом, тем же цветом, что и в профиле игрока: одна и та же
+   сущность должна выглядеть одинаково везде, где показывается. */
+.lb-title{
+  font-size:10.5px;color:var(--gold);font-weight:700;margin-top:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
 /* Счёт не растягивает строку: max-width не даёт длинному числу вытолкнуть имя
    и разорвать ряд, а многоточие показывает, что число обрезано. */
 .lb-score{font-family:'JetBrains Mono';font-weight:800;color:var(--gold);font-size:14px;flex-shrink:0;max-width:38%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -854,6 +905,9 @@ input.field:focus{border-color:var(--sys);box-shadow:0 0 14px rgba(76,201,255,.2
 /* ============ СОСТОЯНИЕ ============ */
 const S = {
   screen: 'splash',
+  // Идёт первое чтение облачного сохранения, локальной копии нет. Пока true —
+  // заставка не пускает в анкету (см. boot()/rSplash()).
+  restoring: false,
   step: 0,
   ans: { name:'', exp:null, goal:null, age:25, max:null, days:null, time:null },
   rank: 'E',
@@ -900,6 +954,9 @@ const S = {
   titles: [],       // id разблокированных титулов (короткие строки)
   bestiary: {},      // kind -> {seen, killed}
   selectedTitle: null, // id титула, показываемого под именем в профиле
+  // О каких титулах контракта игроку уже сообщали (см. announceContractTitles).
+  // Список, а не флаг: титулов несколько, и открываться они могут в разное время.
+  contractSeen: [],
   // Достижения — отдельно от титулов: не выбираются для показа под именем,
   // это просто трофейная полка. Специально без подсказки условия получения
   // в интерфейсе (см. rTitlesAchievementsTab()) — сюрприз, а не чек-лист.
@@ -968,6 +1025,22 @@ function syncReminder(){
 // напоминаний, чтобы учитывать всех уникальных пользователей, а не только
 // тех, кто писал /start боту.
 const TRACK_API_URL = 'https://vrata-bot.emerald520for.workers.dev/api/track';
+/* Событие воронки. Отправляется «в никуда»: ответ не ждём и ошибки гасим —
+   аналитика не должна ни тормозить приложение, ни ломать его при отсутствии
+   сети. Список названий закрыт на сервере, неизвестные там отбрасываются.
+   Зачем это вообще: до сих пор про путь пользователя было известно только
+   «зашёл» и «оплатил», а всё между — вслепую. */
+const EVENT_API_URL = 'https://vrata-bot.emerald520for.workers.dev/api/event';
+function trackEvent(event, detail){
+  if(!TG || !TG.initData || !TG.initDataUnsafe || !TG.initDataUnsafe.user) return;
+  try{
+    fetch(EVENT_API_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/json', 'X-Init-Data':TG.initData},
+      body: JSON.stringify({ event, detail: detail || '' }),
+    }).catch(()=>{});
+  }catch(e){}
+}
 function trackOpen(){
   if(!TG || !TG.initData || !TG.initDataUnsafe || !TG.initDataUnsafe.user) return;
   try{
@@ -992,7 +1065,11 @@ function checkSubscription(){
   fetch(ME_API_URL, { headers:{ 'X-Init-Data':TG.initData } })
     .then(r=>{ if(!r.ok) throw new Error('bad response'); return r.json(); })
     .then(data=>{
-      S.sub = { subscribed:!!data.subscribed, paidUntil:data.paidUntil||null, checkedAt:Date.now() };
+      S.sub = {
+        subscribed:!!data.subscribed, paidUntil:data.paidUntil||null,
+        payments:Number(data.payments)||0, checkedAt:Date.now(),
+      };
+      announceContractTitles();
       saveState();
       render();
     })
@@ -1003,6 +1080,63 @@ function checkSubscription(){
 // была "подписан" и с тех пор прошло не больше 3 суток сверх paidUntil, не
 // запираем контент из-за одной пропавшей сети (например, в метро). Как
 // только связь восстановится, checkSubscription() тут же обновит кэш.
+/* Объявление титулов контракта. Смысл в том, что титул, о котором человек не
+   узнал, не работает вообще: он не наденет его, другие его не увидят, и весь
+   расчёт на статус пропадает. Поэтому о нём сообщаем прямо, один раз на
+   получение — и отдельно предлагаем сразу надеть.
+   Флаг «уже объявляли» сбрасывается, когда титул теряется, чтобы после
+   продления «Контрактор» объявился заново — это ровно тот момент, когда
+   человеку приятно увидеть, что вещь вернулась. */
+function announceContractTitles(){
+  CONTRACT_TITLES.forEach(t=>{
+    const has = isTitleUnlocked(t);
+    const announced = S.contractSeen.includes(t.id);
+    if(has && !announced){
+      S.contractSeen.push(t.id);
+      // Ставим в очередь: если разом открылось несколько (например, оплатил
+      // третий раз — пришли и «Контрактор», и «Верный контракту»), окна не
+      // должны налезать друг на друга.
+      contractTitleQueue.push(t);
+    } else if(!has && announced){
+      S.contractSeen = S.contractSeen.filter(id=>id!==t.id);
+    }
+  });
+  drainContractTitleQueue();
+}
+let contractTitleQueue = [];
+let contractTitleShowing = false;
+function drainContractTitleQueue(){
+  if(contractTitleShowing || !contractTitleQueue.length) return;
+  const t = contractTitleQueue.shift();
+  contractTitleShowing = true;
+  modalOpenCount++;
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:rgba(2,3,10,.8);padding:24px';
+  const already = S.selectedTitle === t.id;
+  wrap.innerHTML = `<div class="syswin" style="max-width:340px;width:100%;background:var(--panel-solid);text-align:center">
+    ${paywallEmblemHTML()}
+    <div class="sys-tag" style="justify-content:center"><span class="bang">!</span> НОВЫЙ ТИТУЛ</div>
+    <div style="font-family:'Russo One';font-size:20px;color:var(--gold);margin:10px 0 6px">${escapeHtml(t.name)}</div>
+    <div style="font-size:13px;line-height:1.5;color:var(--muted);margin-bottom:16px">${escapeHtml(t.desc)}</div>
+    <div style="font-size:12.5px;line-height:1.5;color:var(--muted);margin-bottom:16px">Титул виден другим охотникам в таблице лидеров.</div>
+    <button class="btn" style="margin:0;width:100%" data-act="wear">${already?'Отлично':'Надеть титул'}</button>
+    ${already?'':'<button class="gp-btn2" data-act="later">Позже</button>'}
+  </div>`;
+  document.body.appendChild(wrap);
+  const close = ()=>{
+    wrap.remove();
+    modalOpenCount = Math.max(0, modalOpenCount-1);
+    contractTitleShowing = false;
+    drainContractTitleQueue(); // следующий из очереди, если есть
+  };
+  wrap.querySelector('[data-act="wear"]').onclick = ()=>{
+    if(!already){ S.selectedTitle = t.id; saveState(); }
+    close();
+    render();
+  };
+  const later = wrap.querySelector('[data-act="later"]');
+  if(later) later.onclick = ()=>{ close(); render(); };
+}
 function isSubActive(){
   if(!S.sub) return false;
   if(S.sub.subscribed) return true;
@@ -1054,7 +1188,16 @@ function sendScore(){
     fetch(SCORE_API_URL, {
       method:'POST',
       headers:{'Content-Type':'application/json', 'X-Init-Data':TG.initData},
-      body: JSON.stringify({ name:S.ans.name, rank:S.rank, pushupsToday:S.pushupsToday, squatsToday:S.squatsToday, situpsToday:S.situpsToday }),
+      // streak и titleId уходят на сервер не ради самой таблицы лидеров:
+      // стрик нужен боту, чтобы напоминания были персональными («цепь из 8
+      // дней разорвётся сегодня» — без этой цифры такое сообщение не
+      // составить), а titleId — чтобы титул было видно рядом с ником другим
+      // игрокам. Оба значения живут на телефоне, сервер их только принимает.
+      body: JSON.stringify({
+        name:S.ans.name, rank:S.rank,
+        pushupsToday:S.pushupsToday, squatsToday:S.squatsToday, situpsToday:S.situpsToday,
+        streak:S.streak, titleId:effectiveSelectedTitleId(),
+      }),
     }).catch(()=>{});
   }catch(e){}
 }
@@ -1162,12 +1305,13 @@ function tgBack(){
     case 'settings': go(S.prevScreen||'map'); return;
     case 'titles': go(S.prevScreen||'profile'); return;
     case 'instructions': go(S.prevScreen||'settings'); return;
+    case 'gatePreview': go('map'); return;
     default: return; // на splash/reveal/map/rest/victory/profile своей стрелки нет — прячем и нативную
   }
 }
 function updateTgBackButton(){
   if(!TG || !TG.BackButton) return;
-  const show = ['quiz','journey','raid','settings','titles'].includes(S.screen);
+  const show = ['quiz','journey','raid','settings','titles','instructions','gatePreview'].includes(S.screen);
   try{ show ? TG.BackButton.show() : TG.BackButton.hide(); }catch(e){}
 }
 /* Блокировка свайпа-вниз нужна ТОЛЬКО во время подхода — иначе на экранах с
@@ -1258,7 +1402,7 @@ function saveState(){
     doneGates:S.doneGates, doneGatesEndurance:S.doneGatesEndurance, doneGatesCore:S.doneGatesCore,
     settings:S.settings,
     lastWinDate:S.lastWinDate, todayDate:S.todayDate, onboarded:S.onboarded,
-    titles:S.titles, bestiary:S.bestiary, selectedTitle:S.selectedTitle,
+    titles:S.titles, bestiary:S.bestiary, selectedTitle:S.selectedTitle, contractSeen:S.contractSeen,
     achievements:S.achievements, everDied:S.everDied, sub:S.sub,
   });
   try{ localStorage.setItem(SAVE_KEY, payload); }catch(e){ /* приватный режим и т.п. — просто не сохраняем локально */ }
@@ -1266,7 +1410,19 @@ function saveState(){
   // Telegram; localStorage выше остаётся быстрым локальным кэшем на случай,
   // если CloudStorage недоступен или это вообще не Telegram. Лимит Bot API —
   // 4096 символов на значение, при переполнении просто не шлём в облако.
-  if(TG && TG.CloudStorage && payload.length < 4000){
+  /* ЗАПИСЬ В ОБЛАКО РАЗРЕШЕНА ТОЛЬКО ПОСЛЕ ТОГО, КАК МЫ ЕГО ПРОЧИТАЛИ.
+     Это защита от необратимой потери прогресса, а не перестраховка.
+     Что происходило раньше: localStorage на iPhone может быть вычищен системой
+     сам по себе (WKWebView удаляет хранилище сайтов, к которым давно не
+     обращались) — человек ничего не удалял и не переустанавливал. Приложение
+     открывалось «чистым», показывало заставку, и первое же касание вызывало
+     go() → saveState() → запись пустого состояния в облако. Резервная копия
+     уничтожалась за секунду до того, как её успевали прочитать. Прогресс
+     терялся окончательно, причём нашими собственными руками.
+     Теперь до ответа облака (или до исчерпания попыток) пишем только локально.
+     Худшее, что может случиться при сбое чтения, — прогресс этой сессии не
+     попадёт в облако. Это несравнимо лучше, чем стереть уже накопленное. */
+  if(TG && TG.CloudStorage && payload.length < 4000 && cloudState !== 'pending' && cloudState !== 'failed'){
     try{ TG.CloudStorage.setItem(SAVE_KEY, payload, ()=>{}); }catch(e){}
   }
 }
@@ -1301,6 +1457,7 @@ function applyStateFromRaw(raw){
     S.titles = data.titles || [];
     S.bestiary = data.bestiary || {};
     S.selectedTitle = data.selectedTitle || null;
+    S.contractSeen = data.contractSeen || [];
     S.achievements = data.achievements || [];
     S.everDied = !!data.everDied;
     if(data.sub && typeof data.sub==='object'){
@@ -1318,19 +1475,59 @@ function loadState(){
    приложение открывается мгновенно, не дожидаясь round-trip к серверам
    Telegram. Если там лежит более свежий профиль (играли с другого устройства),
    тихо подменяем состояние и перерисовываем экран. */
-function syncFromCloud(){
-  if(!TG || !TG.CloudStorage) return;
+/* Состояние облачного хранилища на эту сессию:
+     'pending'     — ещё не читали, писать НЕЛЬЗЯ (см. saveState);
+     'ready'       — прочитали успешно, писать можно;
+     'failed'      — не смогли прочитать даже с повторами, писать НЕЛЬЗЯ;
+     'unavailable' — облака нет вовсе (старый клиент, не Telegram) — писать
+                     некуда, но и терять нечего, поэтому не блокируем.
+   Разница между 'failed' и 'unavailable' принципиальна: в первом случае
+   резервная копия может существовать, и затирать её нельзя; во втором её
+   заведомо нет. */
+let cloudState = 'pending';
+const CLOUD_READ_RETRIES = 3;
+// Сколько максимум держим заставку в ожидании облака. 5 секунд — заметно
+// дольше обычного ответа (доли секунды) и заведомо короче терпения человека.
+const CLOUD_RESTORE_MAX_WAIT_MS = 5000;
+function syncFromCloud(attempt){
+  attempt = attempt || 1;
+  if(!TG || !TG.CloudStorage){ cloudState = 'unavailable'; finishCloudRestore(); return; }
   try{
     TG.CloudStorage.getItem(SAVE_KEY, (err, value)=>{
-      if(err || !value) return;
-      const localRaw = (function(){ try{ return localStorage.getItem(SAVE_KEY); }catch(e){ return null; } })();
-      if(value === localRaw) return; // уже синхронизировано — лишний рендер не нужен
-      if(applyStateFromRaw(value)){
-        try{ localStorage.setItem(SAVE_KEY, value); }catch(e){}
-        if(S.onboarded && S.screen!=='raid' && S.screen!=='rest'){ S.screen='map'; render(); }
+      if(err){
+        // Ошибка чтения — это НЕ «данных нет». Раньше мы их путали: молча
+        // выходили, и дальше пустое состояние затирало облако. Пробуем ещё.
+        if(attempt < CLOUD_READ_RETRIES){
+          setTimeout(()=>syncFromCloud(attempt+1), 700*attempt);
+          return;
+        }
+        cloudState = 'failed';
+        finishCloudRestore();
+        return;
       }
+      cloudState = 'ready';
+      if(value){
+        const localRaw = (function(){ try{ return localStorage.getItem(SAVE_KEY); }catch(e){ return null; } })();
+        if(value !== localRaw && applyStateFromRaw(value)){
+          try{ localStorage.setItem(SAVE_KEY, value); }catch(e){}
+          if(S.onboarded && S.screen!=='raid' && S.screen!=='rest'){ S.screen='map'; }
+        }
+      }
+      finishCloudRestore();
     });
-  }catch(e){}
+  }catch(e){
+    cloudState = 'failed';
+    finishCloudRestore();
+  }
+}
+/* Пока идёт первое чтение облака, а локального сохранения нет, приложение не
+   пускает в анкету: иначе человек успевает пройти её поверх ещё не прочитанной
+   резервной копии. Как только облако ответило (или попытки исчерпаны) — либо
+   показываем восстановленный прогресс, либо честно начинаем заново. */
+function finishCloudRestore(){
+  if(!S.restoring) return;
+  S.restoring = false;
+  render();
 }
 
 const QUIZ = [
@@ -1706,6 +1903,24 @@ const EXAM_BOSS_TITLES = {
 };
 const TITLE_ELITE = { id:'elite_hunter', name:'Элитный охотник', desc:'Закрыты все 10 Trial-врат (Испытаний)' };
 const TITLE_BOSS_SLAYER = { id:'boss_slayer', name:'Палач боссов', desc:'Закрыты все 5 Exam-врат (Красных врат)' };
+/* Титулы контракта. Принципиально отличаются от всех остальных тем, что их
+   нельзя добыть в бою — и тем, что один из них можно ПОТЕРЯТЬ.
+   «Контрактор» действует, только пока подписка активна, и исчезает вместе с
+   ней. Это сознательно: вещь, которую видно другим и которую можно лишиться,
+   тянет к продлению сильнее постоянной награды.
+   Титулы за верность, наоборот, остаются навсегда — они награждают
+   пройденный путь, а не текущий платёж, и их нельзя купить разом: три
+   оплаты — это минимум три месяца жизни с приложением.
+   Важно, чего здесь НЕТ: ни один из них не даёт преимущества в игре. Статус
+   продавать можно, силу — нет, иначе таблица лидеров превращается в витрину. */
+const CONTRACT_TITLES = [
+  { id:'contractor', name:'Контрактор', cat:'contract',
+    desc:'Действует, пока активен «Контракт Охотника»' },
+  { id:'loyal_3', name:'Верный контракту', cat:'contract',
+    desc:'Контракт оплачен 3 раза — остаётся навсегда' },
+  { id:'loyal_6', name:'Печать Системы', cat:'contract',
+    desc:'Контракт оплачен 6 раз — остаётся навсегда' },
+];
 // Ситуативные титулы.
 const TITLE_CLOSE_CALL = { id:'close_call', name:'На волоске', desc:'Закрой врата, имея ≤10% HP в момент победы над последним мобом' };
 const TITLE_FIRST_BLOOD = { id:'first_blood', name:'Первая кровь', desc:'Победи своего первого моба' };
@@ -1809,7 +2024,20 @@ const TITLES_LIST = [
   ...Object.values(BESTIARY_GROUPS).map(g=>({ ...g.title, cat:'bestiary_group', desc:`Повержены все мобы группы «${g.name}»` })),
   { ...TITLE_CLOSE_CALL, cat:'situational' },
   { ...TITLE_FIRST_BLOOD, cat:'situational' },
+  ...CONTRACT_TITLES,
 ];
+/* Открыт ли титул. Для боевых титулов это просто «есть в S.titles», но титулы
+   контракта там не лежат: они выводятся из состояния подписки. Такое
+   разделение намеренное — «Контрактор» должен уметь ПРОПАДАТЬ, а всё, что
+   попало в S.titles, оттуда уже не исчезает. */
+function isTitleUnlocked(t){
+  if(t.cat !== 'contract') return S.titles.includes(t.id);
+  if(t.id === 'contractor') return isSubActive();
+  const paid = (S.sub && S.sub.payments) || 0;
+  if(t.id === 'loyal_3') return paid >= 3;
+  if(t.id === 'loyal_6') return paid >= 6;
+  return false;
+}
 
 // Достижения — отдельная полка от титулов: не описывают "кем стал охотник",
 // а просто фиксируют пройденные вехи, и намеренно не подписаны условием
@@ -2126,6 +2354,9 @@ const BADGE_CAT_MAP = {
   rank:  { key:'badge_rank',  color:'var(--mana)' },
   trial: { key:'badge_trial', color:'var(--gold)' },
   exam:  { key:'badge_exam',  color:'var(--danger)' },
+  // Титулы контракта берут эмблему подписки — ту же, что в пейволле и в
+  // настройках, чтобы связь с «Контрактом Охотника» читалась без пояснений.
+  contract: { key:'badge_contract', color:'var(--sys)' },
 };
 const BADGE_META = { key:'badge_meta', color:'var(--sys)' };
 function badgeInfo(cat){
@@ -2348,7 +2579,8 @@ function paywallSuccessHTML(){
   return `<div class="syswin" style="max-width:340px;width:100%;background:var(--panel-solid);text-align:center">
     ${paywallEmblemHTML()}
     <div class="sys-tag" style="justify-content:center"><span class="bang">!</span> КОНТРАКТ ЗАКЛЮЧЁН</div>
-    <div style="font-size:14px;line-height:1.5;margin:10px 0 16px">Врата D, C, B и A открыты, Охотник.</div>
+    <div style="font-size:14px;line-height:1.5;margin:10px 0 10px">Врата D, C, B и A открыты, Охотник.</div>
+    <div style="font-size:12.5px;line-height:1.5;color:var(--muted);margin-bottom:16px">Получен титул <b style="color:var(--gold)">Контрактор</b> — он виден другим охотникам в таблице лидеров.</div>
     <button class="btn" id="paywallDoneBtn" style="margin:0;width:100%">Отлично</button>
   </div>`;
 }
@@ -2396,6 +2628,10 @@ function wirePaywallStage(){
   if(payBtn) payBtn.onclick = ()=>{
     const url = paymentUrlForCurrentUser();
     if(!url){ showToast('Открой мини-апп внутри Telegram, чтобы оформить подписку'); return; }
+    // Именно здесь человек уходит на страницу оплаты — это и есть последний
+    // шаг воронки, который мы контролируем. Всё, что дальше, знает только
+    // Prodamus (и вебхук, пишущий 'sub_active').
+    trackEvent('paywall_click');
     openExternalLink(url);
     renderPaywallStage('checking');
     paywallPollDeadline = Date.now() + 3*60000; // 3 минуты автополлинга после оплаты
@@ -2410,6 +2646,7 @@ function wirePaywallStage(){
   if(doneBtn) doneBtn.onclick = ()=>{ closePaywallModal(); render(); };
 }
 function showPaywallModal(){
+  trackEvent('paywall_view');
   if(paywallWrap) return; // уже открыта
   modalOpenCount++;
   paywallWrap = document.createElement('div');
@@ -2515,7 +2752,14 @@ function hAnimated(html, direction){
   }, 340);
 }
 
-function render(){
+/* opts.keepScroll — перерисовка «на месте», без прыжка наверх. Нужна там, где
+   человек что-то переключает внутри длинного списка: выбор титула на экране
+   титулов происходит внизу страницы, и сброс скролла отбрасывал его к началу,
+   выглядя как потеря места. По умолчанию поведение прежнее — смена экрана
+   должна начинаться сверху. */
+function render(opts){
+  const keepScroll = !!(opts && opts.keepScroll);
+  const scrollY = keepScroll ? (window.scrollY || window.pageYOffset || 0) : 0;
   const phoneEl = document.getElementById('phone');
   // Слайд-переход между шагами квиза сохраняет текущую позицию скролла (double-buffer
   // на месте) — принудительный scrollTo(0,0) в этом случае только даёт лишний рывок.
@@ -2523,12 +2767,14 @@ function render(){
   ({
     splash: rSplash, quiz: rQuiz, reveal: rReveal, journey: rJourney,
     map: rMap, raid: rRaid, rest: rRest, victory: rVictory, profile: rProfile, settings: rSettings,
-    death: rDeath, titles: rTitlesScreen, rank: rRank, instructions: rInstructions
+    death: rDeath, titles: rTitlesScreen, rank: rRank, instructions: rInstructions,
+    gatePreview: rGatePreview
   })[S.screen]();
   updateTgBackButton();
   updateSwipeLock();
   renderQuizBottom(); // на не-квиз экранах прячет persistent-кнопку "Далее" (см. выше)
-  if(!isSlideTransition) window.scrollTo(0,0);
+  if(keepScroll) window.scrollTo(0, scrollY);
+  else if(!isSlideTransition) window.scrollTo(0,0);
 }
 
 /* Статичная иллюстрация "как встать перед камерой" для онбординга — не
@@ -2571,7 +2817,9 @@ function rSplash(){
       <div style="font-size:15px;line-height:1.5">Обнаружен спящий потенциал.<br>Ты был выбран. Ответь на несколько вопросов, чтобы завершить <b class="cy">пробуждение</b>.</div>
     </div>
     <div class="bottom" style="width:100%">
-      <button class="btn" onclick="S.step=0;go('quiz')">Начать пробуждение</button>
+      ${S.restoring
+        ? `<button class="btn" disabled style="opacity:.5">Ищу твой прогресс…</button>`
+        : `<button class="btn" onclick="S.step=0;go('quiz')">Начать пробуждение</button>`}
     </div>
   </div>`);
 }
@@ -2655,7 +2903,7 @@ root.addEventListener('click', (e)=>{
 });
 function nextStep(){
   if(S.step < QUIZ.length-1){ S._navDir=1; S.step++; render(); }
-  else { S.rank = 'E'; S.onboarded = true; go('reveal'); }
+  else { S.rank = 'E'; S.onboarded = true; trackEvent('onboarded'); go('reveal'); }
 }
 
 /* ---- 3. Ранг ---- */
@@ -2791,8 +3039,8 @@ function rMap(){
     // Заблокированные врата тоже кликабельны — но вместо боя показывают тултип
     // (или заглушку подписки), почему нельзя войти, а не молчат.
     const click = mystery ? `onclick="showToast('Эти врата откроются позже')"`
-      : seqLocked ? `onclick="showToast('Сначала закрой предыдущие врата')"`
-      : paywalled ? `onclick="showPaywallModal()"`
+      : seqLocked ? `onclick="showGatePreview('${track}',${g.id})"`
+      : paywalled ? `onclick="showGatePreview('${track}',${g.id})"`
       : `onclick="startRaid('${track}',${g.id})"`;
     let frame, rankLabel;
     if(mystery){
@@ -2866,11 +3114,29 @@ function navBar(on){
 }
 
 /* ---- Таблица лидеров ---- */
+/* Название титула по его id. Сервер хранит и отдаёт ТОЛЬКО идентификатор —
+   имя подставляем здесь, из своих же справочников. Поэтому чужой игрок не
+   может показать в таблице произвольный текст: неизвестный id просто не
+   находится и ничего не рисует. Ищем сначала среди титулов (выбирать можно
+   только их), достижения — на случай, если когда-нибудь разрешим и их. */
+function titleNameById(id){
+  if(!id) return null;
+  const t = TITLES_LIST.find(x=>x.id===id);
+  if(t) return t.name;
+  const a = ACHIEVEMENTS_LIST.find(x=>x.id===id);
+  return a ? a.name : null;
+}
 function lbRowHTML(row, isMe){
+  // Титул — отдельной строкой ПОД именем, а не рядом с ним: строка лидеров
+  // узкая, и в один ряд титул отбирал бы ширину у ника, обрезая оба.
+  const title = titleNameById(row.title_id);
   return `<div class="lb-row ${isMe?'me':''}">
     <div class="lb-rnk">${row.rnk}</div>
     <div class="lb-rank-badge">${escapeHtml(row.rank||'E')}</div>
-    <div class="lb-name">${escapeHtml(row.name)||'Безымянный'}</div>
+    <div class="lb-name-wrap">
+      <div class="lb-name">${escapeHtml(row.name)||'Безымянный'}</div>
+      ${title ? `<div class="lb-title">${escapeHtml(title)}</div>` : ''}
+    </div>
     <div class="lb-score">${row.score}</div>
   </div>`;
 }
@@ -2948,6 +3214,9 @@ const Cam = {
   // Сглаженные (EMA) координаты точек скелета для отрисовки — отдельно от
   // сырых keypoints. См. комментарий у drawSkeleton().
   smoothPts:{},
+  // Когда каждая точка скелета в последний раз была видна уверенно — на этом
+  // строится удержание, гасящее мерцание (см. SKELETON_HOLD_MS).
+  ptsGoodAt:{},
   // Последняя распознанная поза + упражнение — отрисовка скелета читает
   // именно отсюда на каждый кадр экрана (см. camLoop()), а не только в
   // момент, когда подоспел ответ детектора позы (тот работает заметно реже).
@@ -2970,7 +3239,10 @@ const Cam = {
   // Средняя яркость уменьшенного кадра. Отличает «модель не видит человека»
   // от «модели скармливается чёрный прямоугольник» — снаружи это выглядит
   // одинаково, а чинится совершенно по-разному.
-  inputBright:null, _brightAt:0, _noPoseSince:0,
+  inputBright:null, _brightAt:0, _noPoseSince:0, lastPtsBest:null,
+  // Точность вычислений и видеочип — см. startCamera(). Главные подозреваемые
+  // в истории «на Android скелет неполный»: 16-битные текстуры режут точность.
+  f32:null, f32Capable:null, gpu:'',
   // Момент последнего применения EMA к точкам скелета — нужен, чтобы считать
   // альфу от реально прошедшего времени, а не от номера кадра (см. drawSkeleton).
   _lastSmoothAt:0,
@@ -3062,6 +3334,20 @@ function sampleInputBrightness(w, h){
     // это само по себе диагностический факт, не роняем распознавание.
     Cam.inputBright = -1;
   }
+}
+/* Название видеочипа. Нужно, чтобы отличать устройства друг от друга в
+   жалобах: «Mali-G57» и «Adreno 610» ведут себя по-разному, и без этой строки
+   каждый разбор начинается с догадок о железе. */
+function gpuRendererName(){
+  try{
+    const c = document.createElement('canvas');
+    const gl = c.getContext('webgl') || c.getContext('experimental-webgl');
+    if(!gl) return '';
+    const ext = gl.getExtension('WEBGL_debug_renderer_info');
+    const name = ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) || '') : '';
+    // Строки вида «Mali-G57 MC2, OpenGL ES 3.2» режем до узнаваемого куска.
+    return name.replace(/\s*\(.*$/, '').split(',')[0].slice(0, 22);
+  }catch(e){ return ''; }
 }
 function loadScriptOnce(src){
   return new Promise((resolve, reject)=>{
@@ -3173,10 +3459,33 @@ async function startCamera(){
     // "тупит и отстаёт". Если WebGL реально недоступен — не падаем, работаем
     // на том, что есть, но теперь хотя бы знаем об этом: активный бэкенд и
     // измеренный FPS детектора видны в оверлее калибровки перед боем.
+    /* ТОЧНОСТЬ ВЫЧИСЛЕНИЙ. Это, судя по всему, и есть корень «скелет неполный
+       и мерцает на Android».
+       TF.js на WebGL хранит промежуточные данные в текстурах, и на мобильных
+       GPU по умолчанию выбирает 16-битные float — они быстрее. Но 16 бит
+       представляют куда меньший диапазон значений, и точность модели заметно
+       падает: сеть продолжает работать, находит человека, но уверенность по
+       каждому суставу проседает. Ровно то, что мы видим — точки на грани
+       порога, потому и моргают.
+       На iPhone обычно включаются 32-битные текстуры, поэтому у владельца
+       проекта всё выглядит нормально, а у пользователей на Android — нет.
+       Поэтому: если устройство умеет 32 бита — требуем их явно. Это медленнее,
+       но лучше честные 6 кадров в секунду, чем бесполезные 10.
+       Флаги надо выставить ДО инициализации бэкенда, иначе текстуры уже
+       созданы с прежними настройками. */
+    try{
+      Cam.f32Capable = !!tf.env().getBool('WEBGL_RENDER_FLOAT32_CAPABLE');
+      if(Cam.f32Capable){
+        tf.env().set('WEBGL_FORCE_F16_TEXTURES', false);
+        tf.env().set('WEBGL_RENDER_FLOAT32_ENABLED', true);
+      }
+    }catch(e){ Cam.f32Capable = null; }
     try{ await tf.setBackend('webgl'); }catch(e){ console.warn('поза: WebGL недоступен, откат на бэкенд по умолчанию', e); }
     await tf.ready();
     Cam.backend = (tf.getBackend && tf.getBackend()) || '?';
-    console.log('поза: активный бэкенд TF.js =', Cam.backend);
+    try{ Cam.f32 = !!tf.env().getBool('WEBGL_RENDER_FLOAT32_ENABLED'); }catch(e){ Cam.f32 = null; }
+    Cam.gpu = gpuRendererName();
+    console.log('поза: бэкенд =', Cam.backend, '| float32 =', Cam.f32, '| GPU =', Cam.gpu);
     // enableSmoothing по умолчанию ВКЛЮЧЁН — внутри MoveNet работает свой
     // временной фильтр координат. Поверх него у нас уже есть собственный EMA
     // по x/y (см. drawSkeleton) и EMA по углу (Cam.emaAngle) для подсчёта
@@ -3189,6 +3498,7 @@ async function startCamera(){
     });
     Cam.running = true;
     Cam.error = null;
+    trackEvent('cam_ok', Cam.backend || '');
     const readyEx = currentExercise();
     setCamStatus(readyEx==='squat' ? 'Готово — начинай приседать!' : readyEx==='situp' ? 'Готово — начинай поднимать корпус!' : 'Готово — начинай отжиматься!');
     camLoop();
@@ -3204,6 +3514,7 @@ async function startCamera(){
         : inTelegram
           ? 'Эта версия Telegram не даёт доступ к камере внутри мини-приложения. Обнови Telegram до последней версии — если не поможет, считай подходы вручную.'
           : 'Не удалось запустить камеру или распознавание позы (нужен интернет и разрешённый доступ к камере).';
+    trackEvent('cam_fail', (err && err.name) || 'unknown');
     showCamError(msg);
   }finally{
     Cam.initializing = false;
@@ -3310,6 +3621,17 @@ function skeletonColor(){
 // вовсе. Порог 0.2 достаточно низкий, чтобы точки появлялись, но сглаживание
 // всё равно гасит одиночные шумные прыжки.
 const SKELETON_DRAW_SCORE_MIN = 0.2;
+/* Удержание точки после потери уверенности. Порог выше — это «показать»,
+   а вот «спрятать» происходит не сразу: точка ещё некоторое время рисуется
+   там, где была в последний уверенный кадр.
+   Зачем: уверенность модели по каждому суставу постоянно колеблется, и когда
+   она пляшет вокруг порога, точка мгновенно то появляется, то исчезает. На
+   быстром устройстве это почти незаметно, но при 10 к/с один неуверенный
+   кадр — это уже 100 мс отсутствия конечности, и скелет начинает часто
+   мерцать. Удержание 400 мс переживает такие провалы, при этом конечность,
+   реально ушедшая из кадра, всё равно пропадает — просто на полсекунды
+   позже, чего глаз уже не замечает. */
+const SKELETON_HOLD_MS = 400;
 // Сглаживание считается ОТ ВРЕМЕНИ, а не от количества кадров — это принципиально.
 // Раньше здесь была фиксированная альфа 0.35 в расчёте на то, что drawSkeleton()
 // вызывается ~60 раз в секунду. На практике это не так: estimatePoses() занимает
@@ -3481,11 +3803,21 @@ function drawSkeleton(keypoints, exercise){
         Cam.smoothPts[name] = {x:tx, y:ty};
       }
       smoothed[name] = Cam.smoothPts[name];
+      Cam.ptsGoodAt[name] = nowMs;
+    } else if(Cam.smoothPts[name] && (nowMs - (Cam.ptsGoodAt[name] || 0) < SKELETON_HOLD_MS)){
+      // Уверенность просела, но недавно точка была видна — держим её на
+      // последнем достоверном месте (см. SKELETON_HOLD_MS). Именно это
+      // убирает мерцание: короткие провалы уверенности переживаются, а не
+      // превращаются в моргание конечности. Специально НЕ тянем точку к
+      // текущим неуверенным координатам и не экстраполируем — данных, которым
+      // можно доверять, сейчас нет, поэтому просто замираем.
+      smoothed[name] = Cam.smoothPts[name];
     } else {
-      // Кадр с низкой уверенностью — не тащим точку рывком на новое (возможно
-      // неверное) место и не показываем её вовсе, пока уверенность не вернётся.
-      // Скорость тоже сбрасываем: продолжать по ней экстраполировать точку,
-      // которую мы перестали видеть, значит уводить её всё дальше вслепую.
+      // Провал затянулся — конечность действительно ушла из кадра. Не тащим
+      // точку рывком на новое (возможно неверное) место и не показываем её,
+      // пока уверенность не вернётся. Скорость тоже сбрасываем: продолжать по
+      // ней экстраполировать точку, которую мы перестали видеть, значит
+      // уводить её всё дальше вслепую.
       Cam.smoothPts[name] = null;
       Cam.vel[name] = null;
       smoothed[name] = null;
@@ -3580,6 +3912,7 @@ function camLoop(){
       // Скелет меняет набор суставов — прежние скорости относятся к другому
       // движению и другой позе, экстраполировать по ним нельзя.
       Cam.vel = {}; Cam.prevRaw = null; Cam._prevRawAt = 0;
+      Cam.smoothPts = {}; Cam.ptsGoodAt = {};
     }
     if(!pose){
       /* Ни одной позы. Само по себе это нормально (человек ещё не встал в
@@ -3591,12 +3924,24 @@ function camLoop(){
          подачу видеоэлемента напрямую — медленнее, зато работает. */
       const nowNp = performance.now();
       if(!Cam._noPoseSince) Cam._noPoseSince = nowNp;
+      /* ИСПРАВЛЕНО: раньше переход срабатывал по одному лишь отсутствию поз —
+         и потому срабатывал зря. На калибровке человек первые секунды ещё
+         только идёт к телефону, поз в это время закономерно нет, и мы уходили
+         на подачу видео напрямую без всякой причины. Плата за это — реальная:
+         вход перестаёт уменьшаться, и частота падает (на realme 10 наблюдали
+         падение с 10 к/с до 7).
+         Теперь переходим только если кадр в канвасе ДЕЙСТВИТЕЛЬНО пустой —
+         это и есть та поломка, ради которой запасной путь задумывался. Если
+         кадр нормальный, а поз нет, значит модель просто не видит человека, и
+         подача видео тут ничем не поможет. */
+      const frameIsBlack = Cam.inputBright != null && Cam.inputBright >= 0 && Cam.inputBright <= 8;
       if(Cam.inputMode === 'canvas'
          && Cam.videoEl && Cam.videoEl.videoWidth
+         && frameIsBlack
          && nowNp - Cam._noPoseSince > POSE_FALLBACK_AFTER_MS){
         Cam.inputMode = 'video';
         Cam._noPoseSince = 0;
-        console.warn('поза: через канвас поз нет — перехожу на подачу видео напрямую');
+        console.warn('поза: в канвас приходит пустой кадр — перехожу на подачу видео напрямую');
       }
       if(S.raid && !S.raid.started) updateCalibration(null, null);
       else maybeShowNoPoseHint();
@@ -3617,9 +3962,17 @@ function camLoop(){
     // жалоб «скелета нет»: если модель работает, но уверенных точек ноль —
     // проблема в кадре (свет, ракурс, человек не влез), а если поз нет вовсе
     // — проблема в самой модели или в том, что ей скармливается пустой кадр.
-    let good = 0;
-    for(const k of pose.keypoints){ if(k.score >= SKELETON_DRAW_SCORE_MIN) good++; }
+    let good = 0, best = 0;
+    for(const k of pose.keypoints){
+      if(k.score >= SKELETON_DRAW_SCORE_MIN) good++;
+      if(k.score > best) best = k.score;
+    }
     Cam.lastPtsGood = good;
+    // Лучшая уверенность по кадру. Отличает «модель вообще не видит человека»
+    // (максимум около 0.1) от «видит, но не уверена в конкретных суставах»
+    // (максимум 0.8+, а порог проходят единицы). Лечится это по-разному:
+    // первое — вопрос кадра и света, второе — вопрос ракурса.
+    Cam.lastPtsBest = best;
     // Скорости считаем по сырым измерениям и ровно один раз на ответ детектора
     // — отсюда берётся предсказание в drawSkeleton().
     updatePoseVelocity(pose.keypoints);
@@ -3859,6 +4212,7 @@ function playerDied(){
   stopCombatTick();
   stopRaidCountdown();
   const r = S.raid;
+  trackEvent('gate_lose', 'death');
   // Смерть откатывает опыт и уровень захода — как и при ручном отступлении.
   // Отжимания/приседания, сделанные до этого момента, остаются в статистике
   // (см. комментарий у snapshot в startRaid()) — они реальные и честные
@@ -3893,6 +4247,7 @@ function startRaid(track, id){
     showPaywallModal();
     return;
   }
+  trackEvent('raid_start', g.rank + '/' + g.stage);
   const mobs = g.mobs.map((m,i)=>({ ...m, n:i+1, hp:m.maxHp }));
   // Повторное прохождение уже закрытых врат не даёт наград — иначе можно фармить
   // опыт бесконечно, просто переигрывая пройденный контент.
@@ -4069,7 +4424,15 @@ function updateCalibOverlayDOM(r){
 function camDiagText(){
   const parts = [];
   if(!Cam.libsOk) parts.push('модуль: не загружен');
-  else parts.push(Cam.backend || 'бэкенд: ?');
+  else {
+    // Точность рядом с бэкендом: она определяет качество распознавания
+    // сильнее, чем всё остальное в этой строке.
+    let b = Cam.backend || 'бэкенд: ?';
+    if(Cam.f32 === true) b += ' f32';
+    else if(Cam.f32 === false) b += ' f16!';
+    parts.push(b);
+    if(Cam.gpu) parts.push(Cam.gpu);
+  }
 
   const v = Cam.videoEl;
   const vw = v && v.videoWidth, vh = v && v.videoHeight;
@@ -4088,13 +4451,16 @@ function camDiagText(){
       inp += Cam.inputMode === 'video' ? ' видео' : ' канвас';
       parts.push(inp);
     }
-    if(Cam.inputMode === 'canvas' && Cam.inputBright != null){
+    // Яркость показываем и после перехода на видео — по последнему замеру:
+    // именно она объясняет, почему переход вообще случился.
+    if(Cam.inputBright != null){
       parts.push(Cam.inputBright < 0 ? 'кадр: не прочесть'
         : Cam.inputBright <= 8 ? 'кадр: ЧЁРНЫЙ'
         : 'кадр: ок');
     }
     parts.push((Cam.poseFps || '—') + ' к/с');
     parts.push('точек ' + (Cam.lastPtsGood == null ? '—' : Cam.lastPtsGood + '/17'));
+    if(Cam.lastPtsBest != null) parts.push('макс ' + Cam.lastPtsBest.toFixed(2));
   }
   return parts.join(' · ');
 }
@@ -4138,6 +4504,7 @@ function retreatRaid(){
     }
     // "Разумное отступление" — отступление не проходит через экран победы,
     // поэтому новое достижение (если есть) объявляем через showToast().
+    trackEvent('gate_lose', 'retreat');
     const wasNewRetreat = !S.achievements.includes('first_retreat');
     unlockAchievement('first_retreat');
     S.raid = null;
@@ -4233,6 +4600,9 @@ function registerPush(){
   if(!r.started) return; // идёт отсчёт перед боем — повторы ещё не считаются
   const m=r.mobs[r.idx]; if(!m || m.hp<=0) return;
   m.hp = Math.max(0, m.hp-1);
+  // Первый засчитанный повтор захода — самый важный шаг воронки: он
+  // отделяет «вошёл во врата» от «распознавание реально сработало».
+  if(!r.reps) trackEvent('rep_first', Cam.running ? 'cam' : 'manual');
   r.reps = (r.reps||0) + 1; // счётчик за весь заход — растёт независимо от replay/наград
   updateRepCounterDOM();
   if(!r.replay){
@@ -4355,6 +4725,7 @@ function tickRest(){
 function winRaid(){
   stopCombatTick();
   const g=S.raid.gate;
+  trackEvent('gate_win', g.rank + '/' + g.stage);
   const track = S.raid.track;
   const wasReplay = S.raid.replay;
   // Первые в жизни закрытые врата — считаем по ОБОИМ направлениям сразу, а не
@@ -4441,6 +4812,126 @@ function lastMobInfoHTML(mob){
     ${lore ? `<div class="vm-lore">${escapeHtml(lore)}</div>` : ''}
   </div>`;
 }
+/* ============ ПРЕДПРОСМОТР ЗАКРЫТЫХ ВРАТ ============
+   Раньше тап по вратам за подпиской сразу выбрасывал окно с ценой — то есть
+   человек получал отказ в момент, когда хотел действия. Теперь сначала
+   показываем, ЧТО именно закрыто: изображение врат, название, состав монстров
+   и объём работы. Предложение ждёт внизу того же экрана.
+   Порядок здесь и есть содержание правки: желание должно появиться до цены,
+   а не после неё. Имена монстров открыты, лор из бестиария — нет: описание
+   остаётся наградой за победу, иначе бестиарий обесценится. */
+function showGatePreview(track, gateId){
+  S.previewTrack = track;
+  S.previewGateId = gateId;
+  S.prevScreen = S.screen;
+  go('gatePreview');
+}
+function rGatePreview(){
+  const track = S.previewTrack || S.currentTrack;
+  const GATES = gatesForTrack(track);
+  const g = GATES.find(x=>x.id===S.previewGateId);
+  // Врат нет (сохранение из другой версии, битый id) — молча возвращаем на
+  // карту, а не показываем пустой экран.
+  if(!g){ go('map'); return; }
+  const done = doneGatesForTrack(track);
+  // Чем именно закрыты врата. Порядок тот же, что на карте (см. rMap):
+  // последовательный замок важнее подписки — предлагать оплату тому, кто и с
+  // подпиской не смог бы войти, было бы враньём. Значок на портрете и нижний
+  // блок экрана оба зависят от этого признака.
+  const gi = GATES.findIndex(x=>x.id===g.id);
+  const seqLocked = gi > 0 && !done.includes(GATES[gi-1].id);
+  // Врата ранга S — заглушка будущего контента, пройти их нельзя. В общем
+  // счётчике им не место: иначе знаменатель обещает на одни врата больше,
+  // чем реально существует.
+  const realGates = GATES.filter(x=>!x.locked);
+  const doneReal = done.filter(id=>realGates.some(x=>x.id===id));
+  const mobs = g.mobs || [];
+  const totalReps = mobs.reduce((a,m)=>a+(m.maxHp||0), 0);
+  // Врата состоят из волны одинаковых мобов плюс босс — пять одинаковых
+  // портретов подряд ничего не добавляют, поэтому схлопываем по имени и
+  // подписываем количество (×5). Порядок появления сохраняем.
+  const uniq = [];
+  mobs.forEach(m=>{
+    const found = uniq.find(u=>u.name===m.name);
+    if(found) found.count++;
+    else uniq.push({ ...m, count:1 });
+  });
+  const exLbl = exerciseLabel(mobExercise(mobs[0] || {}));
+  const stageTag = g.stage==='exam' ? 'ЭКЗАМЕН · РАНГ '+g.rank
+    : g.stage==='trial' ? 'ИСПЫТАНИЕ · РАНГ '+g.rank
+    : 'ВРАТА РАНГА '+g.rank;
+  const pct = realGates.length ? Math.round(doneReal.length/realGates.length*1000)/10 : 0;
+  h(`<div class="screen reveal">
+    <div class="hdr" style="width:100%">
+      <button class="icon-btn" onclick="go('map')" aria-label="Назад">‹</button>
+      <div class="gp-toptag">${stageTag}</div>
+      <div style="width:34px"></div>
+    </div>
+
+    <div class="gp-hero">${gateArt(g,150)}<div class="gp-hero-lock">${seqLocked ? icon('lock',34,'🔒') : '⚡'}</div></div>
+    <h2 class="gp-title">${escapeHtml(g.name)}</h2>
+    <div class="gp-meta">${mobs.length} ${pluralRuClient(mobs.length,['монстр','монстра','монстров'])} · ≈ ${totalReps} ${pluralRuClient(totalReps,['повторение','повторения','повторений'])} · ${exLbl.verb}</div>
+
+    <div class="gp-sec">Внутри</div>
+    <div class="gp-mobs">${uniq.map(m=>`
+      <div class="gp-mob">
+        <div class="gp-mob-art">${mobVisual(m.kind,62,m.name)}${m.count>1?`<span class="gp-mob-count">×${m.count}</span>`:''}</div>
+        <div class="gp-mob-name">${escapeHtml(m.name)}</div>
+      </div>`).join('')}</div>
+
+    <div class="gp-prog">
+      <div class="gp-prog-row"><span>Пройдено врат</span><span class="gp-prog-num">${doneReal.length} / ${realGates.length}</span></div>
+      <div class="gp-prog-bar"><i style="width:${pct}%"></i></div>
+      <div class="gp-prog-sub">${gatePreviewProgressText(doneReal.length, realGates.length)}</div>
+    </div>
+
+    ${gatePreviewFooterHTML(g, GATES, gi, seqLocked)}
+  </div>`);
+}
+/* Нижний блок экрана зависит от того, ЧЕМ именно закрыты врата. Верхняя часть
+   (изображение, состав, объём работы) одинакова всегда: вопрос «что там
+   дальше» есть у каждого, а не только у того, кому продают подписку.
+   Различается только причина и, соответственно, действие.
+   Порядок проверок повторяет порядок в rMap(): последовательный замок
+   важнее подписки — предлагать оплату тому, кто всё равно не может войти,
+   было бы враньём. */
+function gatePreviewFooterHTML(g, GATES, gi, seqLocked){
+  if(seqLocked){
+    const prev = GATES[gi-1];
+    return `<div class="gp-offer" style="border-color:var(--line);box-shadow:none">
+      <div class="sys-tag" style="justify-content:center"><span class="bang">!</span> ПУТЬ ЗАКРЫТ</div>
+      <div class="gp-offer-txt">Сначала закрой врата «<b style="color:var(--text)">${escapeHtml(prev.name)}</b>».</div>
+      <button class="btn" style="margin:0;width:100%" onclick="go('map')">Вернуться к карте</button>
+    </div>`;
+  }
+  return `<div class="gp-offer">
+    ${paywallEmblemHTML()}
+    <div class="sys-tag" style="justify-content:center"><span class="bang">!</span> КОНТРАКТ ОХОТНИКА</div>
+    <div class="gp-offer-txt">${SUBSCRIPTION_PRICE_RUB} ₽ — доступ на 30 дней, без автопродления. Оплата на защищённой странице Prodamus, картой или через СБП.</div>
+    <button class="btn" style="margin:0;width:100%" onclick="showPaywallModal()">Оформить за ${SUBSCRIPTION_PRICE_RUB} ₽</button>
+    <button class="gp-btn2" onclick="go('map')">Вернуться к карте</button>
+    <div class="sub" style="margin-top:10px;font-size:11px"><a href="oferta.html" target="_blank" rel="noopener" style="color:var(--muted)">Оферта</a> · <a href="privacy.html" target="_blank" rel="noopener" style="color:var(--muted)">Политика конфиденциальности</a></div>
+  </div>`;
+}
+/* Строка под полосой прогресса. Смысл её один: показать, что пройденное —
+   это малая часть пути. Соотношение «7 из 74» продаёт лучше любого текста,
+   поэтому остаток называем числом, а не словами вроде «много». */
+function gatePreviewProgressText(doneN, totalN){
+  const left = Math.max(0, totalN - doneN);
+  // Подписчик этот экран не увидит вовсе, но пусть строка будет корректной
+  // при любых числах — «Дальше — ещё 0» выглядело бы поломкой.
+  if(!left) return `Все ${totalN} врат этого направления пройдены.`;
+  if(!doneN) return `Впереди ${left} ${pluralRuClient(left,['врата','врат','врат'])} этого направления.`;
+  return `Открыто ${doneN} из ${totalN}. Дальше — ещё ${left}.`;
+}
+// Русские окончания для чисел на экранах (1 монстр, 2 монстра, 5 монстров).
+function pluralRuClient(n, forms){
+  const n10 = n % 10, n100 = n % 100;
+  if(n10===1 && n100!==11) return forms[0];
+  if(n10>=2 && n10<=4 && (n100<12 || n100>14)) return forms[1];
+  return forms[2];
+}
+
 function rVictory(){
   const g=S.raid.gate;
   const total = S.raid.mobs.reduce((a,m)=>a+m.maxHp,0);
@@ -4557,13 +5048,37 @@ function rankProgressHTML(){
 }
 
 /* ---- 6б. Титулы и бестиарий ---- */
+/* Выбранный титул — но только если он всё ещё принадлежит игроку. Проверка
+   нужна из-за «Контрактора»: он пропадает вместе с подпиской, а выбор
+   остаётся записанным в сохранении. Без этой проверки истёкший контракт
+   продолжал бы показываться и в профиле, и в таблице лидеров.
+   Сам S.selectedTitle не стираем: если человек продлит подписку, титул
+   вернётся выбранным, и заново тыкать не придётся. */
 function selectedTitleObj(){
-  return TITLES_LIST.find(t=>t.id===S.selectedTitle) || null;
+  const t = TITLES_LIST.find(x=>x.id===S.selectedTitle);
+  return (t && isTitleUnlocked(t)) ? t : null;
+}
+// Что отправлять на сервер — id только реально доступного титула.
+function effectiveSelectedTitleId(){
+  const t = selectedTitleObj();
+  return t ? t.id : null;
 }
 function selectTitle(id){
   S.selectedTitle = (S.selectedTitle===id) ? null : id; // повторный тап снимает титул
   saveState();
-  render();
+  /* Отправляем выбор на сервер сразу. Без этого титул попадал в таблицу
+     лидеров только после следующего закрытия врат — человек выбирал его,
+     шёл смотреть рейтинг и не находил там ничего.
+     Но только если за сегодня уже есть результат. Причина осторожности:
+     upsertScore на сервере перезаписывает счётчики дня целиком, а локальный
+     день мог смениться раньше серверного (часовые пояса). Отправка нулей в
+     такой момент затёрла бы настоящий результат. Если сегодня пусто, игрока
+     в дневной таблице всё равно нет, и титулу негде показаться — он уедет
+     вместе с первым же закрытым проходом. */
+  const todayReps = (S.pushupsToday|0) + (S.squatsToday|0) + (S.situpsToday|0);
+  if(todayReps > 0) sendScore();
+  // Перерисовка без прыжка наверх: титулы выбирают в конце длинного списка.
+  render({ keepScroll:true });
 }
 function setTitlesTab(tab){
   S.titlesTab = tab;
@@ -4572,9 +5087,10 @@ function setTitlesTab(tab){
 const TITLE_CAT_LABELS = {
   rank:'За зачистку ранга', trial:'За боссов испытаний', exam:'За боссов экзамена',
   combo:'Сводные титулы', bestiary_group:'За бестиарий', situational:'Ситуативные',
+  contract:'За контракт',
 };
 function titleCardHTML(t){
-  const unlocked = S.titles.includes(t.id);
+  const unlocked = isTitleUnlocked(t);
   const selected = S.selectedTitle===t.id;
   const progress = !unlocked ? titleProgressText(t) : null;
   const badgeColor = unlocked ? badgeInfo(t.cat).color : '';
@@ -4797,7 +5313,7 @@ function resetProgress(){
     S.currentTrack='strength'; S.doneGates=[]; S.doneGatesEndurance=[]; S.doneGatesCore=[];
     S.rank='E'; S.justRanked=null; S.justStreakInc=false;
     S.raid=null; S.lastWinDate=null; S.todayDate=null; S.onboarded=false; S.step=0;
-    S.titles=[]; S.bestiary={}; S.selectedTitle=null; S.achievements=[]; S.everDied=false;
+    S.titles=[]; S.bestiary={}; S.selectedTitle=null; S.contractSeen=[]; S.achievements=[]; S.everDied=false;
     S.sub={ subscribed:false, paidUntil:null, checkedAt:0 };
     // сбрасываем и ответы квиза (имя/возраст/цель и т.д.) — иначе "сброс прогресса"
     // на деле оставлял старый профиль нетронутым
@@ -4812,6 +5328,17 @@ function boot(){
   ensureDay();
   if(hasProfile) S.screen = 'map'; // профиль уже есть — сразу к карте, минуя онбординг
   tgInit();
+  /* Локального сохранения нет — но это ещё не значит, что человек новый.
+     На iPhone система может вычистить хранилище сама, и тогда единственная
+     копия прогресса лежит в облаке Telegram. Придерживаем заставку, пока не
+     узнаем, есть ли она: без этого человек уходит в анкету и проходит её
+     поверх собственного прогресса.
+     Ждём недолго и с потолком по времени — приложение не должно зависнуть
+     из-за молчащего облака. */
+  if(!hasProfile && TG && TG.CloudStorage){
+    S.restoring = true;
+    setTimeout(()=>{ finishCloudRestore(); }, CLOUD_RESTORE_MAX_WAIT_MS);
+  }
   render();
   syncFromCloud();
   if(hasProfile) syncReminder(); // на случай если прошлая отправка не долетела
