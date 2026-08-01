@@ -296,6 +296,14 @@ input.field:focus{border-color:var(--sys);box-shadow:0 0 14px rgba(76,201,255,.2
 .icon-row{display:flex;justify-content:flex-end;gap:10px;margin-bottom:14px}
 .icon-btn{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--text);font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:transform .12s ease, border-color .2s ease}
 .icon-btn:active{transform:scale(.9)}
+/* Размер картинки задаём здесь, а не в вызовах icon(...) — их четыре штуки в
+   разных экранах (rMap(), rProfile()), и они бы разъехались при первой же
+   правке. icon() отдаёт <img> с атрибутами width/height, CSS их перебивает.
+   Было 18px в коробке 40px — иконка занимала меньше половины кнопки и терялась.
+   24px = ~63% от внутренних 38px, обычная пропорция для иконочной кнопки.
+   Правило намеренно узкое (.icon-btn img): нижнее меню — это .nav button, там
+   иконка стоит рядом с текстом и её увеличение сломало бы строку. */
+.icon-btn img{width:24px;height:24px}
 /* Активный переключатель направления (Врата Силы/Выносливости) в icon-row —
    тот же приём подсветки, что и у выбранного низа nav, см. .nav button.on. */
 .icon-btn.on{border-color:var(--gold);box-shadow:0 0 10px rgba(245,194,66,.35)}
@@ -515,24 +523,25 @@ input.field:focus{border-color:var(--sys);box-shadow:0 0 14px rgba(76,201,255,.2
   background:rgba(4,6,16,.55);backdrop-filter:blur(6px);color:var(--text);font-size:18px;
   display:flex;align-items:center;justify-content:center;cursor:pointer;
 }
-/* Мини-очередь — верхний правый угол, только 2 БЛИЖАЙШИХ моба впереди (не
-   вся пройденная история, как раньше в .mob-queue — для полной ленты на
-   камере во весь экран просто нет места), плюс бейдж "+N" на тех, кто ещё
-   дальше в очереди. */
-.raid-mini-queue{position:absolute;top:calc(14px + env(safe-area-inset-top));right:14px;z-index:5;display:flex;gap:6px}
-.raid-mini-mob{
-  width:30px;height:30px;border-radius:9px;border:1px solid rgba(255,255,255,.25);
-  background:rgba(4,6,16,.55);backdrop-filter:blur(6px);display:flex;align-items:center;
-  justify-content:center;overflow:hidden;position:relative;
+/* Очередь волны точками. Раньше тут были аватары двух ближайших мобов и бейдж
+   "+N" — на камере во весь экран больше не помещалось, и человек не видел ни
+   сколько пройдено, ни сколько осталось. Точки занимают меньше места, чем два
+   аватара, и вмещают волну любой длины.
+   Общая подложка под всем рядом обязательна: точки мелкие и на светлом кадре
+   (комната днём) без неё теряются. */
+.raid-mini-queue{
+  position:absolute;top:calc(14px + env(safe-area-inset-top));right:14px;z-index:5;
+  display:flex;gap:5px;align-items:center;padding:6px 8px;border-radius:10px;
+  background:rgba(2,3,10,.82);border:1px solid var(--line);
 }
-.raid-mini-mob svg{width:22px;height:22px}
-.raid-mini-mob.boss{border-color:var(--danger)}
-.raid-mini-mob.boss.gold{border-color:var(--gold)}
-.raid-mini-more{
-  width:30px;height:30px;border-radius:9px;border:1px solid rgba(255,255,255,.25);
-  background:rgba(4,6,16,.55);backdrop-filter:blur(6px);display:flex;align-items:center;
-  justify-content:center;font-family:'JetBrains Mono';font-size:11px;color:var(--muted);
-}
+/* Порядок правил = приоритет: сначала «босс», потом «пройден», потом
+   «текущий» — так подсветка текущего перекрывает всё, а босс-в-текущем
+   остаётся золотым (последнее правило). */
+.raid-qdot{width:7px;height:7px;border-radius:50%;background:#3A4570;flex-shrink:0}
+.raid-qdot.boss{width:9px;height:9px;background:var(--gold);opacity:.5}
+.raid-qdot.done{background:var(--muted);opacity:.35}
+.raid-qdot.now{background:var(--sys);opacity:1;box-shadow:0 0 7px rgba(76,201,255,.9)}
+.raid-qdot.now.boss{background:var(--gold);box-shadow:0 0 8px rgba(245,194,66,.95)}
 /* Верхняя панель — карточка моба + полоса HP игрока (+ баннеры экзамена/
    реплея, если есть) одним flex-столбцом. Специально НЕ через отдельные
    absolute-блоки с угаданными отступами — так высота карточки (может
@@ -602,10 +611,119 @@ input.field:focus{border-color:var(--sys);box-shadow:0 0 14px rgba(76,201,255,.2
    от этого больше не зависит). */
 .raid-counter-row{
   position:absolute;left:0;right:0;bottom:calc(96px + env(safe-area-inset-bottom));z-index:5;
-  display:flex;align-items:flex-start;justify-content:center;gap:22px;padding:0 20px;
+  display:flex;align-items:flex-start;justify-content:center;gap:14px;padding:0 20px;
 }
 .raid-counter-row .rep-counter{position:static;width:74px;height:74px;font-size:28px}
-.raid-counter-col{display:flex;flex-direction:column;align-items:center;gap:6px}
+/* Ширина 80px приравнивает колонку счётчика к боковым — только так ряд
+   остаётся симметричным: три равные колонки центрируются относительно
+   середины экрана независимо от длины подписей под кнопками. */
+.raid-counter-col{width:80px;display:flex;flex-direction:column;align-items:center;gap:6px}
+/* Подписи под боковыми кнопками. «+» и «дверь» ничего не говорят человеку,
+   который впервые столкнулся с тем, что повторы не считаются, — а именно он
+   эту кнопку и ищет. Поэтому подпись у ручного счёта сформулирована как
+   вопрос, который человек в этот момент задаёт себе сам.
+   Подложка у текста своя: ряд лежит поверх видео, и без неё подпись пропадёт
+   на светлом кадре. */
+/* Ширина колонок ФИКСИРОВАННАЯ и одинаковая — это не косметика, а причина
+   выравнивания. Пока ширина определялась длиной текста, колонки выходили
+   разными («Отступить» 62 px, «Не считает?» 76 px), ряд смещался относительно
+   счётчика, и подписи читались как съехавшие с кнопок.
+   80 px выбрано с оглядкой на самые узкие экраны: три колонки по 80 плюс два
+   промежутка по 14 и отступы по краям дают 308 px и помещаются даже в 320. */
+/* ---- Гонка с призраком: карточка на карте ---- */
+/* Фиолетовая рамка отделяет режим от врат: голубой в приложении означает
+   Систему и врата, фиолетовый нигде не занят и ложится под «призрака». */
+  margin:0 14px 10px;border:1px solid rgba(176,139,224,.45);background:rgba(20,16,34,.9);
+  border-radius:14px;padding:12px 14px;cursor:pointer;
+}
+/* Когда попытки кончились — карточка гаснет и перестаёт звать. */
+  background:linear-gradient(135deg,#6D28D9,#8B5CF6);border-radius:11px;padding:11px;
+  text-align:center;font-size:14px;color:#fff;
+}
+
+/* ---- Гонка с призраком: экран режима ---- */
+/* Рекорд — главная и самая крупная цифра экрана: именно её человек приходит
+   побить, всё остальное вторично. */
+.duel-hero{text-align:center;margin-top:18px}
+.duel-hero-num{font-family:'Russo One';font-size:64px;line-height:1;color:#B08BE0}
+.duel-hero-cap{font-size:12.5px;color:var(--muted);margin-top:6px}
+.duel-stats{display:flex;gap:10px;width:100%;margin-top:20px}
+.duel-stat{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:11px 8px;text-align:center}
+.duel-stat .v{font-family:'Russo One';font-size:20px;color:var(--text)}
+.duel-stat .k{font-size:11px;color:var(--muted);margin-top:3px}
+.duel-limits{width:100%;margin-top:14px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.duel-limit-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted);padding:3px 0}
+.duel-limit-row b{font-family:'JetBrains Mono';font-size:15px}
+.duel-limit-row b.ok{color:var(--gold)}
+/* Исчерпанный лимит показываем приглушённо, а не красным: это не ошибка
+   человека, а обычное состояние конца дня. */
+.duel-limit-row b.off{color:var(--muted);opacity:.6}
+.duel-limit-note{font-size:11.5px;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}
+.duel-opponent{width:100%;margin-top:14px;border:1px solid rgba(176,139,224,.35);background:var(--panel);border-radius:14px;padding:12px 14px;text-align:center}
+.duel-opp-tag{font-family:'JetBrains Mono';font-size:10px;letter-spacing:2px;color:#B08BE0}
+.duel-opp-name{font-family:'Russo One';font-size:17px;margin-top:5px}
+.duel-opp-sub{font-size:12.5px;color:var(--muted);margin-top:5px;line-height:1.45}
+/* Чужой соперник выделен ярче своего призрака: это событие, а не рутина. */
+.duel-opponent.rival{border-color:#B08BE0;box-shadow:0 0 18px rgba(176,139,224,.18)}
+.duel-opp-note{font-size:11px;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--line);line-height:1.4}
+.duel-find{
+  display:block;width:100%;margin-top:10px;font-family:inherit;font-size:13.5px;
+  color:#B08BE0;background:transparent;border:1px solid rgba(176,139,224,.45);
+  border-radius:11px;padding:10px;cursor:pointer;
+}
+.duel-find:disabled{opacity:.5}
+
+/* ---- Гонка с призраком: бой ---- */
+/* Счётчики вверху и крупно: человек смотрит на экран с пола, с полутора
+   метров, между повторами. Всё, что мельче, там просто не читается. */
+.duel-top{
+  position:absolute;top:calc(52px + env(safe-area-inset-top));left:12px;right:12px;z-index:5;
+  display:flex;align-items:center;gap:10px;
+}
+.duel-side{
+  flex:1;background:rgba(2,3,10,.82);border:1px solid var(--line);border-radius:12px;
+  padding:8px 10px;text-align:center;transition:border-color .2s ease;
+}
+.duel-side.me{border-color:rgba(76,201,255,.5)}
+.duel-side.ghost{border-color:rgba(176,139,224,.5)}
+/* Кто впереди — тот и подсвечен. Считывается боковым зрением, без чтения цифр. */
+.duel-side.lead{box-shadow:0 0 16px rgba(255,255,255,.12)}
+.duel-side.me.lead{border-color:var(--sys)}
+.duel-side.ghost.lead{border-color:#B08BE0}
+.duel-side-tag{font-family:'JetBrains Mono';font-size:9px;letter-spacing:1.5px;color:var(--muted)}
+.duel-side-num{font-family:'Russo One';font-size:30px;line-height:1.15;color:var(--text)}
+.duel-side.ghost .duel-side-num{color:#B08BE0}
+.duel-side.me .duel-side-num{color:var(--sys)}
+.duel-timer{
+  flex-shrink:0;font-family:'JetBrains Mono';font-size:17px;color:var(--text);
+  background:rgba(2,3,10,.82);border:1px solid var(--line);border-radius:10px;padding:8px 9px;
+}
+/* Последние десять секунд — красным. Это единственный момент, когда цвет
+   должен тревожить. */
+.duel-timer.low{color:var(--danger);border-color:rgba(255,59,92,.5)}
+.duel-bottom{position:absolute;left:12px;right:12px;bottom:calc(22px + env(safe-area-inset-bottom));z-index:5;text-align:center}
+.duel-hint{
+  display:inline-block;font-size:12.5px;color:var(--text);
+  background:rgba(2,3,10,.8);border-radius:8px;padding:7px 12px;
+}
+/* Выход подписан и приглушён: он должен находиться, но не соблазнять.
+   Своя подложка обязательна — кнопка лежит поверх живого видео. */
+.duel-quit{
+  display:block;margin:10px auto 0;font-family:inherit;font-size:12.5px;
+  color:var(--muted);background:rgba(2,3,10,.8);border:1px solid var(--line);
+  border-radius:10px;padding:9px 18px;cursor:pointer;
+}
+.duel-result-nums{display:flex;align-items:center;justify-content:center;gap:18px;margin:10px 0}
+.duel-result-num{font-family:'Russo One';font-size:40px;color:var(--sys);line-height:1.1}
+.duel-result-num.ghost{color:#B08BE0}
+.duel-result-vs{font-size:12px;color:var(--muted)}
+
+.raid-side-col{width:80px;display:flex;flex-direction:column;align-items:center;gap:5px}
+.raid-side-label{
+  font-size:9.5px;line-height:1;white-space:nowrap;color:var(--text);
+  background:rgba(2,3,10,.8);border-radius:5px;padding:3px 6px;
+}
+.raid-side-label.gold{color:var(--gold)}
 /* HP игрока — раньше была узкой колонкой (132px) прямо под золотым счётчиком
    повторов и визуально сильно короче полосы HP моба сверху экрана. По просьбе
    пользователя вынесена в отдельную полноширинную строку под рядом
@@ -724,6 +842,7 @@ input.field:focus{border-color:var(--sys);box-shadow:0 0 14px rgba(76,201,255,.2
 /* Строка стала длиннее (см. camDiagText) — разрешаем перенос и поднимаем
    контраст: её основное назначение — попасть на скриншот с чужого телефона
    и остаться читаемой, а при opacity .4 текст на фото уже почти не виден. */
+.raid-calib-diag.hidden{display:none}
 .raid-calib-diag{
   margin-top:6px;font-size:10px;letter-spacing:.03em;opacity:.55;
   font-variant-numeric:tabular-nums;line-height:1.5;text-align:center;
@@ -891,6 +1010,10 @@ input.field:focus{border-color:var(--sys);box-shadow:0 0 14px rgba(76,201,255,.2
   font-size:10.5px;color:var(--gold);font-weight:700;margin-top:2px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
+/* Титул за место в дуэлях — фиолетовым, как весь режим призрака, чтобы его не
+   путали с обычными золотыми титулами: он временный и держится только пока
+   человек в тройке. */
+.lb-title-duel{color:#C9A7F5}
 /* Счёт не растягивает строку: max-width не даёт длинному числу вытолкнуть имя
    и разорвать ряд, а многоточие показывает, что число обрезано. */
 .lb-score{font-family:'JetBrains Mono';font-weight:800;color:var(--gold);font-size:14px;flex-shrink:0;max-width:38%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -908,6 +1031,10 @@ const S = {
   // Идёт первое чтение облачного сохранения, локальной копии нет. Пока true —
   // заставка не пускает в анкету (см. boot()/rSplash()).
   restoring: false,
+  // Режим «Гонка с призраком»: текущий бой, кэш состояния режима с сервера и
+  // результат последнего захода. Всё это живёт только в сессии и в сохранение
+  // не идёт — источник правды по рейтингу и лимитам на сервере.
+  duel: null, duelState: null, duelResult: null, duelLoading: false, duelError: false, duelFinding: false,
   step: 0,
   ans: { name:'', exp:null, goal:null, age:25, max:null, days:null, time:null },
   rank: 'E',
@@ -922,6 +1049,20 @@ const S = {
   squatsTotal: 0, squatsToday: 0, squatsWeek: 0,
   // Третье направление — Врата Стойкости (подъём корпуса), см. TRACKS.core.
   situpsTotal: 0, situpsToday: 0, situpsWeek: 0,
+  /* Те же повторы, но ТОЛЬКО подтверждённые камерой — счётчики идут рядом со
+     всеми остальными и ничего в них не меняют.
+     Зачем: как только за результат начнут давать рейтинг (режим с призраком),
+     кнопка ручного счёта превратится в способ его получить — она даёт до
+     сорока нажатий в минуту, а бой длится минуту. Поэтому в соревновательных
+     режимах будут засчитываться только эти счётчики, а обычные врата и личная
+     статистика продолжают считать всё подряд, как раньше.
+     Начинаются с нуля у всех, включая тех, кто давно играет: восстановить
+     задним числом, какие из прошлых повторов были камерными, невозможно.
+     Поэтому пока нигде не показываются — цифра станет осмысленной, когда
+     наберётся история. */
+  pushupsCamTotal: 0, pushupsCamToday: 0, pushupsCamWeek: 0,
+  squatsCamTotal: 0, squatsCamToday: 0, squatsCamWeek: 0,
+  situpsCamTotal: 0, situpsCamToday: 0, situpsCamWeek: 0,
   // Какое направление сейчас открыто на карте — 'strength' (Врата Силы,
   // отжимания) или 'endurance' (Врата Выносливости, приседания), см. TRACKS.
   currentTrack: 'strength',
@@ -961,6 +1102,14 @@ const S = {
   // это просто трофейная полка. Специально без подсказки условия получения
   // в интерфейсе (см. rTitlesAchievementsTab()) — сюрприз, а не чек-лист.
   achievements: [],
+  /* Этому устройству нужен запасной вычислитель (WASM): его видеочип считает
+     неверно, проверено на практике при прошлом запуске (см. maybeSwitchToWasm).
+     Храним вместе с прогрессом, чтобы не повторять проверку каждый раз: без
+     этого первые шесть секунд каждого захода во врата распознавание заведомо
+     не работает, и человек снова видит поломку, которую мы уже нашли.
+     Значение привязано к устройству, а не к игроку — но и сохранение у нас
+     локальное, так что при переезде на другой телефон оно просто перепроверится. */
+  needWasm: false,
   everDied: false, // флаг для ачивки "Восставший из пепла" (см. playerDied()/startRaid())
   // Подписка "Контракт Охотника" — статус приходит с сервера (/api/me,
   // см. checkSubscription() ниже), кэшируется в localStorage вместе с
@@ -977,6 +1126,8 @@ const S = {
   // Открыт ли дропдаун выбора Дня/Недели (см. rRank()/togglePeriodMenu()) —
   // чисто визуальное UI-состояние текущей сессии, в saveState() не идёт.
   rankPeriodMenuOpen: false,
+  rankTabMenuOpen: false,   // дропдаун выбора упражнения — вкладок стало 4, в ряд не влезают
+  rankChallenging: false,   // идёт запрос "вызвать на бой" из таблицы дуэлей
   rankData: null,      // {top:[...], me:{...}|null} — последний успешный ответ /api/leaderboard
   rankLoading: false,
   rankError: false,
@@ -1196,6 +1347,9 @@ function sendScore(){
       body: JSON.stringify({
         name:S.ans.name, rank:S.rank,
         pushupsToday:S.pushupsToday, squatsToday:S.squatsToday, situpsToday:S.situpsToday,
+        // Камерные — отдельными полями. Нынешняя таблица лидеров их не
+        // использует и не меняется; они копятся для режима с призраком.
+        pushupsCamToday:S.pushupsCamToday, squatsCamToday:S.squatsCamToday, situpsCamToday:S.situpsCamToday,
         streak:S.streak, titleId:effectiveSelectedTitleId(),
       }),
     }).catch(()=>{});
@@ -1228,30 +1382,90 @@ function loadLeaderboard(){
 }
 function setRankTab(tab){
   S.rankPeriodMenuOpen = false; // переключение упражнения — заодно закрываем дропдаун, если был открыт
-  if(S.rankTab===tab) return;
+  S.rankTabMenuOpen = false;
+  if(S.rankTab===tab){ render(); return; } // меню закрыть надо в любом случае
   S.rankTab = tab; S.rankData = null; render(); loadLeaderboard();
 }
 // Одна кнопка-дропдаун вместо двух отдельных кнопок "День"/"Неделя" (см.
 // rRank()) — открывает/закрывает список из двух пунктов, выбор пункта сразу
 // закрывает его через setRankPeriod().
+const RANK_TABS = [
+  { id:'pushups', label:'👊 Отжимания' },
+  { id:'squats',  label:'🦵 Приседания' },
+  { id:'situps',  label:'🛡 Пресс' },
+  { id:'duel',    label:'⚔ Арена' },
+];
 function togglePeriodMenu(){
   S.rankPeriodMenuOpen = !S.rankPeriodMenuOpen;
+  S.rankTabMenuOpen = false;   // два открытых меню наложились бы друг на друга
   render();
+}
+function toggleRankTabMenu(){
+  S.rankTabMenuOpen = !S.rankTabMenuOpen;
+  S.rankPeriodMenuOpen = false;
+  render();
+}
+
+/* Вызов соперника прямо из таблицы дуэлей. Лимит боёв здесь не тратится — его
+   тратит сам бой, а назначенного соперника можно менять сколько угодно до
+   старта. После успеха уводим на экран дуэлей: иначе человек остался бы в
+   рейтинге и не понял, что вообще что-то произошло. */
+function challengeFromRank(runId, name){
+  if(S.rankChallenging) return;
+  if(!(TG && TG.initData)){ sysNotice('Вызов доступен только внутри Telegram.'); return; }
+  // Храним id вызываемого захода, а не просто true: строка таблицы по нему
+  // узнаёт, что ждут именно её, и показывает это (см. lbDuelRowHTML()).
+  S.rankChallenging = Number(runId);
+  render({ keepScroll: true });   // без keepScroll таблицу отбросило бы наверх
+  const done = (fn)=>{ S.rankChallenging = false; render({ keepScroll: true }); fn(); };
+  fetch(DUEL_API_URL, {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'X-Init-Data': TG.initData },
+    body: JSON.stringify({ action:'challenge', run_id: runId }),
+  })
+    .then(r=>r.json())
+    .then(d=>{
+      if(d && d.error){
+        // 'stale' — заход выпал из недельного окна, пока человек смотрел таблицу.
+        done(()=>sysNotice(d.error==='stale' ? 'Этот заход уже устарел. Обнови таблицу.'
+               : d.error==='self'  ? 'Это твой собственный результат.'
+               : 'Не удалось назначить соперника.'));
+        return;
+      }
+      // Состояние из ответа намеренно не подставляем: там дорожка соперника
+      // приходит строкой, а разбирает её loadDuelState(). Подставили бы —
+      // бой стартовал бы с нечитаемой тенью.
+      done(()=>{
+        openDuelHome();
+        sysNotice('Соперник назначен: ' + (name||'охотник') + '. Начинай бой.');
+      });
+    })
+    .catch(()=>done(()=>sysNotice('Нет связи с сервером.')));
 }
 function setRankPeriod(period){
   S.rankPeriodMenuOpen = false;
   if(S.rankPeriod===period){ render(); return; }
   S.rankPeriod = period; S.rankData = null; render(); loadLeaderboard();
 }
-// Закрывает дропдаун День/Неделя при тапе куда угодно вне него — сам дропдаун
-// перерисовывается через innerHTML на каждый render(), поэтому вешать
-// локальный обработчик на сам элемент бессмысленно (он теряется при
-// следующей перерисовке); один делегированный слушатель на document,
-// добавленный один раз при загрузке скрипта, переживает любые render().
+/* Закрывает дропдауны рейтинга при тапе куда угодно вне них — сами дропдауны
+   перерисовываются через innerHTML на каждый render(), поэтому вешать
+   локальный обработчик на сам элемент бессмысленно (он теряется при
+   следующей перерисовке); один делегированный слушатель на document,
+   добавленный один раз при загрузке скрипта, переживает любые render().
+
+   Слушатель ищет класс .rank-menu на обёртке. Это ЖЁСТКАЯ связь с разметкой
+   rRank(): если обёртка потеряет класс, тап по собственной кнопке дропдауна
+   будет считаться тапом "мимо" — обработчик кнопки откроет меню, а этот
+   слушатель тут же закроет его в том же кадре, и меню просто не будет
+   открываться. Ровно это и произошло, когда выбор упражнения переделали из
+   кнопок в список и старый класс .rank-period-wrap исчез из разметки.
+   Меню тут два, и закрываются они вместе: тап по кнопке одного должен гасить
+   другое, иначе они наложатся друг на друга. */
 document.addEventListener('click', (e)=>{
-  if(!S.rankPeriodMenuOpen) return;
-  if(e.target.closest && e.target.closest('.rank-period-wrap')) return;
+  if(!S.rankPeriodMenuOpen && !S.rankTabMenuOpen) return;
+  if(e.target.closest && e.target.closest('.rank-menu')) return;
   S.rankPeriodMenuOpen = false;
+  S.rankTabMenuOpen = false;
   render();
 });
 // "Активен сейчас" в /stats — это не настоящий realtime, а "виделся за
@@ -1306,12 +1520,14 @@ function tgBack(){
     case 'titles': go(S.prevScreen||'profile'); return;
     case 'instructions': go(S.prevScreen||'settings'); return;
     case 'gatePreview': go('map'); return;
+    case 'duel': abortDuel(); return;
+    case 'duelHome': go('map'); return;
     default: return; // на splash/reveal/map/rest/victory/profile своей стрелки нет — прячем и нативную
   }
 }
 function updateTgBackButton(){
   if(!TG || !TG.BackButton) return;
-  const show = ['quiz','journey','raid','settings','titles','instructions','gatePreview'].includes(S.screen);
+  const show = ['quiz','journey','raid','settings','titles','instructions','gatePreview','duel','duelHome'].includes(S.screen);
   try{ show ? TG.BackButton.show() : TG.BackButton.hide(); }catch(e){}
 }
 /* Блокировка свайпа-вниз нужна ТОЛЬКО во время подхода — иначе на экранах с
@@ -1398,12 +1614,15 @@ function saveState(){
     pushupsTotal:S.pushupsTotal, pushupsToday:S.pushupsToday, pushupsWeek:S.pushupsWeek,
     squatsTotal:S.squatsTotal, squatsToday:S.squatsToday, squatsWeek:S.squatsWeek,
     situpsTotal:S.situpsTotal, situpsToday:S.situpsToday, situpsWeek:S.situpsWeek,
+    pushupsCamTotal:S.pushupsCamTotal, pushupsCamToday:S.pushupsCamToday, pushupsCamWeek:S.pushupsCamWeek,
+    squatsCamTotal:S.squatsCamTotal, squatsCamToday:S.squatsCamToday, squatsCamWeek:S.squatsCamWeek,
+    situpsCamTotal:S.situpsCamTotal, situpsCamToday:S.situpsCamToday, situpsCamWeek:S.situpsCamWeek,
     currentTrack:S.currentTrack,
     doneGates:S.doneGates, doneGatesEndurance:S.doneGatesEndurance, doneGatesCore:S.doneGatesCore,
     settings:S.settings,
     lastWinDate:S.lastWinDate, todayDate:S.todayDate, onboarded:S.onboarded,
     titles:S.titles, bestiary:S.bestiary, selectedTitle:S.selectedTitle, contractSeen:S.contractSeen,
-    achievements:S.achievements, everDied:S.everDied, sub:S.sub,
+    achievements:S.achievements, everDied:S.everDied, sub:S.sub, needWasm:S.needWasm,
   });
   try{ localStorage.setItem(SAVE_KEY, payload); }catch(e){ /* приватный режим и т.п. — просто не сохраняем локально */ }
   // CloudStorage синхронизирует прогресс между устройствами одного аккаунта
@@ -1446,6 +1665,12 @@ function applyStateFromRaw(raw){
     S.situpsTotal = data.situpsTotal || 0;
     S.situpsToday = data.situpsToday || 0;
     S.situpsWeek = data.situpsWeek || 0;
+    // Камерные счётчики: у сохранений, сделанных до их появления, полей нет —
+    // читаются как нули, и это правильно. Задним числом определить, какие из
+    // прошлых повторов были камерными, невозможно.
+    S.pushupsCamTotal = data.pushupsCamTotal || 0; S.pushupsCamToday = data.pushupsCamToday || 0; S.pushupsCamWeek = data.pushupsCamWeek || 0;
+    S.squatsCamTotal = data.squatsCamTotal || 0; S.squatsCamToday = data.squatsCamToday || 0; S.squatsCamWeek = data.squatsCamWeek || 0;
+    S.situpsCamTotal = data.situpsCamTotal || 0; S.situpsCamToday = data.situpsCamToday || 0; S.situpsCamWeek = data.situpsCamWeek || 0;
     S.currentTrack = (data.currentTrack==='endurance' || data.currentTrack==='core') ? data.currentTrack : 'strength';
     S.doneGates = data.doneGates || [];
     S.doneGatesEndurance = data.doneGatesEndurance || [];
@@ -1458,6 +1683,7 @@ function applyStateFromRaw(raw){
     S.bestiary = data.bestiary || {};
     S.selectedTitle = data.selectedTitle || null;
     S.contractSeen = data.contractSeen || [];
+    S.needWasm = !!data.needWasm;
     S.achievements = data.achievements || [];
     S.everDied = !!data.everDied;
     if(data.sub && typeof data.sub==='object'){
@@ -1689,6 +1915,8 @@ function mobExercise(m){
 }
 // Что нужно делать прямо сейчас в активном заходе (текущий моб в очереди).
 function currentExercise(){
+  // В дуэли упражнение всегда одно — отжимания (см. решение по режиму).
+  if(S.screen==='duel') return 'pushup';
   const r = S.raid; if(!r) return 'pushup';
   return mobExercise(r.mobs[r.idx]);
 }
@@ -2325,6 +2553,13 @@ function gateArt(g, size){
 // icon() в этом случае тихо откатывается на исходный эмодзи, ничего не ломая.
 const ICON_IMAGES = {
   nav_map: 'data:image/webp;base64,UklGRrINAABXRUJQVlA4WAoAAAAQAAAAfwAAfwAAQUxQSG4DAAABBmq0thmSpPq+iKxZ27Zt27Zt27Zt27Zt2/bYZvyo6t7T9Uas8b4RMQH8h3dvLJk1YbmCDnlCmtNZqqAdE8nOMzjLZGG8Xg18pFQVj03NFw0qkVfs0cZ1RTIf68LU5qAZgpdHuiu185Ko4gStkdrbe9roRpbCJKnOx9rFztNUDJIK4JKarNmvfVyn6kSGKFnOjAySxt32gCOPur1v+pX3PfQ1edtKUZLlbcqjb/46deQjR0cFZcpVTcZL+6QOf++ASYJbjsy1dQ+mluyya5DyY5z65P6pZW+dPCg35mN/llr5i0WCZUa6JLX24LmdWbEwYZ8W4yuZiToktfqQGZx5ebTluG/FjJj0aeu9snBlGQkC4OCpnfmIQuCVUi684gkJ8auxouXBvJr7y5IZZ7v8lwTZc6LgWXC+lFBPjcpDJ5xuG8jKRu4RlIU9huM8nYWKWyfcL0YLhuZCi4433ax7gBmUcek7+gxOwD98dMdcRiDjeP0T/LdjIgUtOQpvwORGqPR7QEgxB30nQWKsv4/3VFANSWfDjdgIbbNRaD93CobkY80O92EVa8g21kx90W6PWBxLl6Adj1bn0WibotHGO6w/1IAN4Wj1Jfvi9F9/limMeDwdp8doldXQjdWuX+MMWmc8Es3jWQn62UnGM6ygRRL4yeM52qJo13WKSMZxhBfhdi1bGGeh4WiHYjHo9IR+EJiEt3XpbpwgGNixaI8G1cCOQBs6V3Ao8wkeAxt1ShAULc72OhZPkbBcT6eyBcHtjiaVrWKd96DtGGVgO4H1nnY0N6I4F7mCPAbstdFUJ0zUCQl/4AtvSjM5y9V09aDCbSZhBGXjDBCrtuyeiytBvDo+H6P9RuPx5Ms56LPcnKMZBBmqqTvnoP+EQTWY2VMOR6yMYpx224eywB7Xz+cEGZByeWMUhJdvysLR+Vgu+izkRHBOOywXvDYKY6bff0OzcWwQgrTD8Gy8NbEbQNR1KZvfTFq++FvMudDAbBwVVUO06uVfOpO/dFXPXhLGiFc+/prdydmcEKymIMflmGNrggmlOVc8n7zgvufJJ3TRGhseosMvuOPuD9i5q/TFB4/dfcGGl1wtnXWBdPZeq6603PycR9JszooTSjVYa7czxMbQPDYNGpekqzG2M0hs2xqzZiQ7okawlmxg7T9dAlZQOCAeCgAAUCcAnQEqgACAAD5RJI1FI6IhFYwErDgFBKAJaDVbDL+yXOSIvmq6S8kXlP/mevr0U/5v1C+c55gPNS/33qV/Zz1gOpM9BrpVf8nQF+UP4Hmt4c+pTUO7O/4HD78ZE9jSH0ArJTVB79eiv+o+kne0eW+wT/O/6/+xPshZ2fqT2C/zU9d72H+jYZkJVQ1wGtK/P8u0Y955ptdK0VwTOEV4VvF+aG1D94FxAFc9ueAEjOgc08ki+qzYOP9OTic7/2BC+agOKSGmScCnsaZfs07Um44udTr12QYBaBeJugNArLaSVdf6VBu+3+wXrWLLB/gH/2YFSszt6aKyJYK1WurVYhPkqpwIjAyU9GLnMK5M328sIi6iODdHqU4qYkdOuH36TEtbRgN7YuGTfaE85NlomMvp3NPZKAyWxZaZ+GacpwFojYAA/v5Hlm443w4LNAZC2WpAswFzKQkqhVMuOUzbFCmOb5sX0cB2xQnr3fe9TYnSADyEZiFIQdKaQF7U74fUFAUagWyd0bJ/1NMjP+dp4JvxoLY5MhRW7rl04/ZRoiTByPmN6JwZxpGSHLIX2/tQpU5cB+eX0takIecFnWD8XUvflVbPPXmuCUGBf0uR61e1YrMni0DdcZMG/2hhhlMT/uu4daElrZzN7F8ghOXYzSXICqaDcKpGqFh0VAAM4Xx5WkbJPlwImUqQyMUDwN5fCkHMf2/pI131pmesVa5OOQ+dxr+gWUFvxLdb5Wdjj7bkf7lYZ+XfPYV0gInZWKRV2qfr0QMUC8rCqMuTrD7y8uXsFfs57N6dw0qgKhy/KDUR43ukoYFfxvkw8u+BVQZEUdtkD9df7E3/dS0qfAXBIUjcWLW4AeQN+smgtFJhd0issOb9sXVZDelUzz+Ghlo7P9bVHUy4JxLrg4qFyyJQJXiHVDjxvRuftKgSZA4IPAMRJVeVCVKWcq+Yts0cek71x3IvdxsNr8VR6HIBGVlzPpkkSnJ+oE70RPOgXr702Rrwnmoi4rvnae3YS0lmZLnwccvgr6Miw1yHi5BSQuXdqOGSMJOti9bhMA6dulOX+Io6jcZ/mHrYgHe2/dRbyWoYi47qEc+Cnahe91C78JPHXYWHXVqMqiSubr4EbTGkvQ24ICywVyuFqXorqByf62kccBoS33Pv6ynXdmMmfaC2Q/izbeaIDSRP+riD1+dnTlFW0qDWCzrBiuPjr+4EFB5T3IVPvD6grBN+3mIB+z9IjER1jGPPKgSCQnsNcSu3i5J+rcfsv/bxBVlYHd73oxZ0S/rcUuBdp5uGhvOmHoDujG/Y3ktSTYRH+Rmh7zR3Hchl1U/oKIEN6lz5SiRRy0F+td+AtfOyzOuaQdSh2ptC8XOnHB2WyavybBvT51Z3SA+g1CPrfE4CTWaFG6Z2A/tgwGGg1+hXJjRwHmfWUGPa9+FJ5NKbXY34qhGca5g4BNBVQZTwzSpus0qN7pmlKbTDO/fTiebiMXUn4s4YJN3BsjqkUVb0W7xIVfVJ64BaI9Y8aT6k3YfFUprXn/jZN0zp0jo1oQHwcny8uhY5aM9l/atmC7Lu+dqviEkuRS2aPGoB/m0o2PwIGP86yV3yMM8IyqHflnN4B7ilS/+lFWw/WQOiRsspuc24nO5eHSk1mNu+92+QAd+nIRt6wjnzSFbeYdb4ZI0rDAnCL3ONMEZTyb2zesDB84R3yVcZxI72jSx9PBan7hSpr/uvDeXSo4ehmw8x63Bqsl7da2hLbX251EJX7seVA8K+k6KWJAn5YGK0kPVD2V6Tqanz7abgt0DGpV4+QJOR6SFhsZXyr7PJ53jgzVGjwXCGKdAqlDBbIpgz40FFfRC/8MA/yA0gAdm/pbWfkf/HQ5U/iYUIyOXo/iER04iav5xqY89DD9x7Gg+XQzQ4BsOpvBzx/wMhG2VT1g6No7TI8C/zvvWG4AaMsQBTvtn0Dy5GFGuAmN12AgFoM4/7v5oBMbDh+3bBz2HWN1GbIW3ojePyA7W+xCYakhGgPRPNt4Yf8fh5zu9Dof18QKs6bLPl52bC3tSsjjgmhmq5EqNOFJb1uiUtGKHKFM4z1hQtBXms91/04rNE+ojPdRBLIiNepKcaKvtfVnAKq37Fru6v196m/fIS+eH+vwk5hTGsHWLtSsgYfS8o+FDnoy5iO+yvTsc8VbNpA0hZDFujdhifRol1yfcKSZhtye+LaZPN3uSuRIUJawN3Gp+wejD8Rpn4gXBBG1IfgraEhBDdS/+y8Wosbpo7VtaZ3rVCZQzqUFNlsccNxwTBiJy/qfc/vnFgnoBIBzRB9qQazZQvGOV2/9cVH3GM+nultRjPB9SKJFrL3WxoqPxiFcsxbpKlGT/zw1MpWEH0GkLCgTUlKXnGHQM4lL3JQSdU14yGpw3/SI0QTtofrq2/IDwzzJgVL1hVXOjWsxLVYxyB83ynWpB5QZA+5P0Vu3tFihYIXWtXP+1YkN9W76XfFpkT/gb1mnaEE0Ojj/H0ZmOhBfV89cnbjojxV3fU/TU2pkXR70jiucCiq6odeI1By8uoUANOlkL+v+fJZNnLEx2bdfASkm+Tj1++y/nm0BpQqW4uoM2ccKE7t7+pEVBkTl/294U0Nc7kleAZZpymfmzuvvfhm3kzbIW2ntsN1VHnniU2iz613t10VduquLomuY1pXJ+42+8ekvj102vlfMz6DjoCCPrJsHaMOlTBwMKQEO2lMxa7k7pgfO/o4a2Qh3WnOGsLydKqpv+vEGUfRTu667cp7ZbFHZd7o/CYDnVmF8Y6UkrzhX3RiPqK39J8/NYGBSajgTe5aIRYAFQcjOYu5sIrExETc9UClRtPcmezQ1WGV18T+Ev8fV0VlMbMMKsWj2o38mJ62THzJf9/ft7CqWR9j3sozVQLPFCk/NPmLAdj/SJS1No+rZ4sMUeQRC7hhD6z1RaKBAy61m7IRWFH7RrmHNSHlMDZl1KjBL5E95NbU/jtuZYTby7bJbbF3dZiKfiDsIJ5AkJNvH89IXjQ7Yw9I6cwA68IjVhwc/D1eEyzQf8yxrZEdvgip3BQ9reB62hFg14jHCo8uBNEWQd2p4LMKWvMGLkcvCDkMwR0ob3MhHiS+LXka3NlHnUiiyYrOmYgnNDeN+XamyRNdS+4tkXuKZtvEF+8Sy6skfpsEoY2dK0WX4seUwhM3PAhXyF/CCuhy7TudLW4Xq1jtMsthT0DDHFEQastWsqsd4TKTTjgRONs+bv/jXnMDYh16i55C0mP97z6VgUu0Z1u2cCzPvLtFzu5Rc2o3432MuAkCgWNH6ncPT21VIjxMQ3ERJyGdt7cbTv346KUgtroB/4Lz8WO9U/v6Xnl7cm+63eTo0ml2hSLgHAFH/fdz8vUCRqzsODadOpsMLZjUaPqorm6SKVbPAH6/h86X+MSUz6HBiyJyhR8gOZ3gLf3jdKMpEimNiDx3S1gkAAAAAAAAA==',
+  /* Иконка «Арены» — отрисована отдельно, поэтому пришла позже остальных.
+     Обработана под свой единственный размер (18px в меню): исходник обрезан
+     по самим клинкам (сплошное свечение вокруг них на таком размере
+     превращалось в пятно), штрихи утолщены и прозрачность поджата — иначе
+     линии тоньше пикселя просто исчезали при уменьшении. Не «улучшайте»
+     обратно из исходника без проверки на реальном размере. */
+  nav_duel: 'data:image/webp;base64,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',
   nav_rank: 'data:image/webp;base64,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',
   nav_profile: 'data:image/webp;base64,UklGRsQQAABXRUJQVlA4WAoAAAAQAAAAfwAAfwAAQUxQSB8EAAABBlq0bZu2o7M27st9fnHKtm3btm3Ftq2/sm3btm07zlP2x/Pe61R9pbU5I2ICsJxX0zTHLNkEyCuSK28BrGsguWTAfe9eGIC6a1e1zCGSfUOLHxUt80Y8VngktPKJFR3zxcDv8VVo9ZfrOYP8kHJW9Jsf2jjvNGuQI8e9FtrxrY0d80Gw4n7zQrv+vIazueAxObT3h6vQ5IB4PN1u+HFNR/2sPzN04BdFZ5QTY6eHDn1imzIjmgkqZocOnreWpXIfdxSmrdaFVO2zDsOIbVTziODvabr1iADTaqxWgm4zFoQIa09xVMpg1cUhyus6aUUObowDRzuqZLjSL8siuWsVZ6mPI68Lsd61tVL9Q0RWG8FKffvdGOKduPX65fpcuTBE/McB65dnypjIcNr65aLNCpFNqHS6CNbcE5f/E1PdCjVN1RBUfwXs+X5M+APorYgpuW0B+UhtVAB611Cgg2WvxSHF3gVo4Xh7SPKOzTYGagTJCcpHh2TnT60xCpiKN3POpVV0pORVLb69xjUVAyAR6UHCFe9OBB8fUaghHU2RZBrW9SAt08G8TVcAis0n5CqYDpaevsJ6wNpkIrJN/7kPkqdvutHNyWDeKY/ghaXk6c4AiMxg7YbQ7JObd3opGdSG5rc2pUAyWPZ+SP8El5SKF/rISgDLVRdr0s9DsngFZYB3+FaTmzdEd0FkwPWa3HEqaRCNK2mmz2JNak8l1zCIxXciUTUs6Nr4AKc6xlOc/PI3Qd+vo/oyaBwRTO6xoNMjMfEJlc6PaphG9dt6G43x2zYq9LKHiUb8Vh8qhIneRWP98UHlw5yNxfEkna6Pp4BTdPqtlzVxsLDaVzphoEcUvmTTD4PSf63tJQLxJV8HtX9e06DjrJ/yt14Y5xgB/+8JziRvfKVRm6VnPfgd8ORGBh0HWNL5Y+p0+fdQb4ukQRZlM3hJl8b9vKVBLADotw66LnvFUoAsXscRygB7WmYxa3TMfyzyRE2eveFhIDYIzgfOG6nDvZXeCpDFLnSkP/gHBZ70SAPNFHavS+657gZZwgUMSG2AFWQpC929aV1mKVnaxvW6EwnVrmOZpU6S5yxO5mNnMgUt3UYvpDBuNDDYqAA4VnyUwKgylEimpePaDXEt+/Oz+zYrg+ghpuuOD0R1c/cS6wHJ9EBXYJfDvorm6VWdpcl0FQP6HefFsq1jpq4A1mP7b6N4c0ClEX2addx4zIsds/QFco6HZGobOE54+tP2++LE3kCJajCOBPvPb5/aPsVy0ggy3cUAdoXjGtph0T4FAAaS6S+WbvcP2zawAMlyUxwr72zDkgGOkuWpJce16rktnWQ5a+B7N7R0lSOz3BWPM1oYacksjz1GNPOlpWS5LOQtAfhnF8sspwVmT2BVI1luiyEJZHneJFu+IwBWUDggfgwAAPAuAJ0BKoAAgAA+USSORKOiIRXMLMg4BQS0ADzk/M+ZZXn9Vt9xd+3ycx5gHOf/bT1Afsl60nof/v3qAf1z/OdYX6AH7K+mv+4/wV/2n/kfuZ8Av7Tf//2APQAvXbGb6v9q+Q50V5lfRr9V/T/RX/XeF/AC9cf5b8vuEHsz/rvUC9aPof+98OLVTyAP5f/Tf+d6yd9P577AX82/vn/d9l7+s/7f+m83f0b/3P9F8Af8u/p/+//vPtq+tz9wPZa/Ylk15SqzjVbdSJFpPt4+TLL6LA3WvSvn2HWEuG2hJYN50qRpTgbAicYpSqIVg3WnfzSsJdECwcNxC/itG0NRCpBzkO9Q7hTT2jHhHX6wN0NcxpuEHcMxWTZ+kpd69OgttN7g1tPSZPn0YA/UQlF46JtbkPc6FU/MYUnFYc6obBZ2oOr9GZ9FQNhQ5UrhUj3uIzhh3nOfRTMe3jGY6nZnOSCYC5ks3G8CrT6uyhB2oQMrMeSFYTmErgEloRyQlEnsAAD+/u6qAViUBgi3E56h+GDeDf9I2IAb5tFKcY2DeD6+4d5XS64dCbtmGFoK/wmjwfdMh7IusH9do/XT8EtuCSF/Dt3mtdeX0wb9+3Vt0OVD+EQdY89scqbNxW17ERxZ6hUll4QgADc9w42ArqbinXIfJJ/8/xJIEfTHsMshiF3dJNpLJJRdm/ab3toRNCc6x2GmgwJDLnPNfD1vnHoYAtjtdkpaYkVL7A8pWlYtp14U5vF7ErViMQZJ3kkzoHDPlTstcqb9Fx8IJdeg3v24lTY2ChevmwwAZOygdtNsWp4pw+RV4ogq3bvD4gDRkFN/+SdjnEe1QJqaMWMHyDqeXYR7nn+iHf8LN09BVl+W1wZwPjpHB5BRuPygnKmZbfa/vRCD5UVrS6c8F2nrN5qUHRBI9pwBE+pr8jkwXvDNPz9eiQqravXqt8GMOKGAhJLi6VrtPXoGwI99s4PCi/zspZLBej7rFHJrP94R0Oxs9Fh5/l5M5DMi/IDXUdjI7M7AvwpxM7rfuh/VQKfqf+DQD+KBj4jkNcjZuayNmfyfOBCMSs7jH7iKzUQ3b/52zW/5u4xlK/MHCCIlvvGyOVrHNQuC38GHvmdQ9lSn2IkfzES4hURf47fv67xaQLixgRlgyrvLpyBb7c/fWzKinIpk3Mk+WG76XUE8UUUB518qNh0WwdQE0G8iZf5gc2gU10Gs66G2tVnkgcCnyOgi6wp64LMjSaWE3b9CiEIiZ9sUCjFN+rEmcc2NUC7W+cbM3mQtTzAKofyiSsUZFLCnb0ZhNdymNSN6oSh24W8ew5wFRzqx30k+PzlRpqN1MfLDv0GQteSwpyEORyfxUBDm5r2705LymSmp6pXgdr9cvpBvtcBbnrzgjzyu4VGxPoJlCFrecXu6El0Eal3Rffma3GkZXPmtQDRyThioMf70jPsdU2z0x3EOM+TQtixtew7CHetLmyvEfgD0kVNrQTldlRW+EH/f+Tx6uXHxnXrutbZrUX7dRDoMQkBIQ6b+rph1ovlECSSKNwu/owHQdG6jZ3TAteFYCYqRYLlZTAw9p2vD3zhwN+CmRf9JxDcKvy69+Tb/4Gtjr8OQbyWYkOCyoCmBD5QrPfpxlZO5f9+nfh7Tey7+FFDBOjM7tHbFwAYXZGXleZFlfikS9wx12AKZ1/H7ctW24rP+zC7sIm60hVRNfN11tL8vLsBpH5O+mint5FD7JuvfpmS+MbVk0RuGjJIAVRWxzp9EBMIw46KwuHuGW7E8bgRRSsK3Ws2mvMiYAwjlfTvP8lSvm9/zV9tek4POmi/GLiFJjIlV1T+GK5sdmq+TYL684XFvTIE3mgIFNKXTA+ObE2lhj+ykiE5auAxbndufPeOg/mivkeNe8G9KRVlh+fxpT73zoa7Rlq1nwXrTV3teZpa6Fi6GvMOj3+OgxgIdEWCX8n/OjkfuVK1YXilABL6Prc4YfysuinAebUlp2tvzuW2m/Xb/jT6fxAneRese+JFEdoAj0TJjR/SFwJJ/GqNU5X9ZVzsj/7X7cmSB8QqwLiTBwX3n88E/jn8AumKMjdMlcpWmcJrnzkCQDvlIA0Yh+yKuN1Iiu7abSFhtedi2dOB+1CJn46Ddnfb1Pbn9EU4fe1BRIct7xXK1p4W/8Nf3X+TKWJH/QVMG75I+nBAg4pBIY1yb5nN2cSSYi9uJ0rQJIC2f45N+1UuSeHV7adw77aFpvSdH+YWoMyqy9o/Bpj91Mz8b/UpYJgfY5P8nkN+9rJwtZscx0JIIpmiTjFv+7VDK/i4X/t91Ho0ufg5v7N2GyfLPwxE/OTPw4VZMYhI8UkPRvhX4iYDZj1mLG9DMS/6d4aFpMv0NrEgL3D9krck5quDfDQ6gAsDp5Vb88mqOXkbtTRFGifB8q/JvUpno9jvaQ2awWBd6kggRkFoJX6GEw5RhojyVzEgyGeour4ZdEXj2/AyWqNb+BFQnD72EubgrRUT+FsgUIGaej46JmStnvxw2YDlfElY56LDGC+Nfrgjh7+OpQzaxX9flTbjJz87XuYLEJauEApZ3peDq6EjOIzsuZBvyGSKDZFBO6O9Ns9Qtwob0ZKqyn36Y6UeEP7rIZkgdEVTTc6xRU6nfDLSb4SUCUyp5/9oo+i4H/sFkOvHA9fc9vMNgL1WEq5dBU4OBtBtUNmHlN+3aN9nJnlQVd/ZHhT7cZQp7kIh1O97NUI4VbHqxhEliQpHdDPsTnkQJ2eAqliYpFy6c5j67TFQXBFD/yMgprQMrKZBSirxUKIm9DiJZVusLJrsD1V277a43fnhUftWPV1O8GST3xNC/5VCGxq1KxuOB0/Ua48xwE9m9SeYPvOYOId02m+Ba8zQDv1jHYgfJGbRf3UGmkz26i+G1mYQx0+1S5LDHuHT6RVrHW80sGXu9MAmtJyEHqPvg3Ckvv4ZwCSUC8Csgudu8jRdWhPjiFpZ7lJmPX9ZtL1QuDENIytR0v6nZKFMOkpIZ1sJ2erry78B3tayWQLMuHuX6TLNPMo6KT0us81LQhE0/nvGKI/M5nHl7tVj0agLlXXT75IaZ4Uf9JM304UV9Z8EPqc8yvpmUaARtUvBhDm/Lbll5TuH218vGmnt3D79LafVRs2V3oCTK/CR/9xu1XqPHBLEKREwrS+OBaaqrswR+D8N7v7sJS8s6WGWPxNP1V9az47PoSVktFvONMyzbJxMomP5OMC22ZCY22TMldSOmco2PI9UnCLF+t7mP/YmxYBM0eiMA+sw1GqzSTddViyC5/n4o5lHXVULMJuxVtj0/yTk9csAPfHJPjIyQrCWG37nBXShaQNLrXX8IP/DvgahdaPVHVyUc9mdNDdkDriPZ/q/TfPvrTJnxBrcHkk08yFPGrFqiN8J8FRtGs8+JnDLKAuA3VLx/bsrkEWoL9DZHB5d7hmqQcxqGouOI/xx8bZWcJdurVQYkfWh+0iOTR1O8Hrgfl1NxT1ZKqek5UuvrjOufpZdsO3JAXlbYBhOyVRyTdlBCyMjiwBAHlg0c4IQafaOyZSLEaKxKH0Ii43y1ZbCfEANDBFFUbzeSIa1UhhdaAY4FZSTEiG7Zckmti1Hp6cjoNMtnKN/12YZbDarxZ8QfebpxuQw9PhC45X+ejwa3ym61VgEZORuKrpievJ/4kYA5v4CcuqGK97cCMgMePFRNddT3yH6dj1SVva2lJ1Q4ruWUanPUZGj/WdNtaFAeKjh3R5Dz+aN6ITkWHruo3HSasstk3V3R2BRbTtNc1APVLOIF1oKceHTCgPWuhTANIDGd6rLx9/hwEntGrob9m2gsVIQTIAEfV02m4o1TYgiKLpFTLWndswcJSPrdAkOZwiEHC7sj5QLWLuxI9XeHuWX37XDS+DMNlNcTske4q4NlSvLobkBIXb7DA3yxZLj4ylGpbbwYpZ3Tk/MUGR3gznNYNxAcbwznAh7fbULyQzvyNLW5dcpsAt9U5eIHGIBGgIhm/cF18brmQ2OoRQ0itx7Dnl2+mjJiTo+hZ+pUeJDoa31D5sPPotkwfObqQamSvkPvMmUEVxKWjjTaBfkrINf+9ONUmK5haFVHn2H9eDJJouDIbsjqeeUvjmzqlyB274eRL80sgN3fddTr0xB0iF1SjlJjB4z1a8gR0JVxJDY3xJ0pmSfFcwJyFDdwRmOxExtP1ROjSt7QMGqMBigTi70oAF09QSvyvZ1Wb7uRp/N73ykTvozL55z4JcPrHeP3WZxYgBtPzH6WT6UKeGTups3B4AAAAA==',
   settings_gear: 'data:image/webp;base64,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',
@@ -2401,6 +2636,28 @@ function escapeHtml(str){
    заднем плане приостанавливается — иначе можно было бы неожиданно умереть,
    просто читая вопрос "точно ли ты хочешь отступить". */
 let modalOpenCount = 0;
+
+/* Короткое уведомление внизу экрана. Не модалка: сообщать "соперник назначен"
+   диалогом с кнопкой ОК — значит требовать лишний тап там, где человек и так
+   всё увидит на следующем экране. Само гаснет. */
+let noticeTimer = null;
+function sysNotice(message){
+  let el = document.getElementById('sysNotice');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'sysNotice';
+    el.style.cssText = 'position:fixed;left:16px;right:16px;bottom:92px;z-index:60;padding:12px 16px;'
+      + 'background:var(--panel-solid);border:1px solid var(--line);border-radius:14px;'
+      + 'font-size:13.5px;line-height:1.45;text-align:center;box-shadow:0 12px 28px rgba(0,0,0,.45);'
+      + 'opacity:0;transition:opacity .18s ease;pointer-events:none';
+    document.body.appendChild(el);
+  }
+  el.textContent = message;
+  requestAnimationFrame(()=>{ el.style.opacity = '1'; });
+  clearTimeout(noticeTimer);
+  noticeTimer = setTimeout(()=>{ el.style.opacity = '0'; }, 2600);
+}
+
 function sysConfirm(message, onConfirm){
   modalOpenCount++;
   const wrap = document.createElement('div');
@@ -2768,7 +3025,7 @@ function render(opts){
     splash: rSplash, quiz: rQuiz, reveal: rReveal, journey: rJourney,
     map: rMap, raid: rRaid, rest: rRest, victory: rVictory, profile: rProfile, settings: rSettings,
     death: rDeath, titles: rTitlesScreen, rank: rRank, instructions: rInstructions,
-    gatePreview: rGatePreview
+    gatePreview: rGatePreview, duelHome: rDuelHome, duel: rDuel, duelResult: rDuelResult
   })[S.screen]();
   updateTgBackButton();
   updateSwipeLock();
@@ -3105,12 +3362,25 @@ function rMap(){
     }
   });
 }
+/* Нижнее меню: Врата / Дуэль / Рейтинг. Профиль отсюда убран — его место занял
+   режим дуэлей, а вход в профиль есть на каждом экране иконкой в верхнем ряду
+   (см. profileIconHTML()). Три пункта — предел: кнопки делят ширину поровну, и
+   на четвёртом подписи начали бы переноситься.
+   Иконки нет только у дуэли: в ICON_IMAGES её не рисовали, поэтому icon()
+   отдаёт запасной символ ⚔ — тот же, что у вкладки дуэлей в рейтинге. */
 function navBar(on){
   return `<div class="nav-spacer"></div><div class="nav">
     <button class="${on==='map'?'on':''}" onclick="go('map')">${icon('nav_map',18,'⛩')} Врата</button>
+    <button class="${on==='duel'?'on':''}" onclick="openDuelHome()">${icon('nav_duel',18,'⚔')} Арена</button>
     <button class="${on==='rank'?'on':''}" onclick="go('rank')">${icon('nav_rank',18,'🏆')} Рейтинг</button>
-    <button class="${on==='profile'?'on':''}" onclick="go('profile')">${icon('nav_profile',18,'👤')} Охотник</button>
   </div>`;
+}
+/* Иконка профиля для шапок экранов, где нет полного ряда переключателей
+   направления. Раньше профиль был пунктом меню и попасть в него можно было
+   откуда угодно; теперь пункт убран, поэтому иконку обязан нести каждый экран
+   с нижним меню — иначе с рейтинга и дуэлей в профиль было бы не попасть. */
+function profileIconHTML(){
+  return `<button class="icon-btn" onclick="go('profile')" aria-label="Профиль">${icon('nav_profile',18,'👤')}</button>`;
 }
 
 /* ---- Таблица лидеров ---- */
@@ -3119,6 +3389,30 @@ function navBar(on){
    может показать в таблице произвольный текст: неизвестный id просто не
    находится и ничего не рисует. Ищем сначала среди титулов (выбирать можно
    только их), достижения — на случай, если когда-нибудь разрешим и их. */
+/* Титулы за место в недельной таблице дуэлей. Их НЕТ в TITLES_LIST и нельзя
+   выбрать в профиле: они не принадлежат игроку, а описывают его текущее место
+   и снимаются автоматически, когда место потеряно. Названия здесь только для
+   отображения — выдаёт их сервер, клиент на это не влияет. */
+const DUEL_PLACE_TITLE_NAMES = {
+  duel_blade_1: 'Первый Клинок',
+  duel_blade_2: 'Второй Клинок',
+  duel_blade_3: 'Третий Клинок',
+};
+function duelTitleName(id){ return DUEL_PLACE_TITLE_NAMES[id] || null; }
+
+/* Титульная строка под ником. Титул за место идёт первым и своим цветом —
+   он редкий и временный, а выбранный титул никуда не денется. Оба в одну
+   строку, чтобы ряд таблицы не вырастал до трёх этажей. */
+function lbTitleLineHTML(row){
+  const duel = duelTitleName(row.duel_title);
+  const own  = titleNameById(row.title_id);
+  if(!duel && !own) return '';
+  const parts = [];
+  if(duel) parts.push(`<span class="lb-title-duel">⚔ ${escapeHtml(duel)}</span>`);
+  if(own)  parts.push(escapeHtml(own));
+  return `<div class="lb-title">${parts.join('<span style="opacity:.4"> · </span>')}</div>`;
+}
+
 function titleNameById(id){
   if(!id) return null;
   const t = TITLES_LIST.find(x=>x.id===id);
@@ -3126,16 +3420,41 @@ function titleNameById(id){
   const a = ACHIEVEMENTS_LIST.find(x=>x.id===id);
   return a ? a.name : null;
 }
+/* Строка таблицы дуэлей. Отличается от обычной тем, что по чужой строке можно
+   тапнуть и вызвать этого человека — поэтому у неё есть значок ⚔ как признак
+   кликабельности. Своя строка некликабельна: драться с собственной записью
+   бессмысленно, сервер такой вызов всё равно отклонит. */
+function lbDuelRowHTML(row, isMe){
+  const can = !isMe && row.run_id;
+  // Пока запрос в полёте, тапнутая строка помечена и остальные погашены —
+  // иначе на медленной сети человек тыкает в пустоту и не понимает, засчиталось
+  // ли (повторный тап-то блокируется, но молча).
+  const busy = S.rankChallenging === Number(row.run_id);
+  const dim  = S.rankChallenging && !busy;
+  // Кавычки и слэши вырезаем ДО экранирования, а не после: escapeHtml
+  // превращает ' в &#39;, но парсер HTML вернёт его обратно в ' уже внутри
+  // значения onclick — и строковый литерал в JS развалится.
+  const argName = escapeHtml(String(row.name||'').replace(/['"\\]/g, ''));
+  return `<div class="lb-row ${isMe?'me':''}${busy?' challenging':''}" ${can?`onclick="challengeFromRank(${Number(row.run_id)}, '${argName}')" style="cursor:pointer${dim?';opacity:.4':''}"`:''}>
+    <div class="lb-rnk">${row.rnk}</div>
+    <div class="lb-rank-badge">${escapeHtml(row.rank||'E')}</div>
+    <div class="lb-name-wrap">
+      <div class="lb-name">${escapeHtml(row.name)||'Безымянный'}</div>
+      ${lbTitleLineHTML(row)}
+    </div>
+    <div class="lb-score">${row.score}</div>
+    ${can ? `<div style="margin-left:8px;font-size:15px;${busy?'opacity:1':'opacity:.5'}">${busy?'⏳':'⚔'}</div>` : ''}
+  </div>`;
+}
 function lbRowHTML(row, isMe){
   // Титул — отдельной строкой ПОД именем, а не рядом с ним: строка лидеров
   // узкая, и в один ряд титул отбирал бы ширину у ника, обрезая оба.
-  const title = titleNameById(row.title_id);
   return `<div class="lb-row ${isMe?'me':''}">
     <div class="lb-rnk">${row.rnk}</div>
     <div class="lb-rank-badge">${escapeHtml(row.rank||'E')}</div>
     <div class="lb-name-wrap">
       <div class="lb-name">${escapeHtml(row.name)||'Безымянный'}</div>
-      ${title ? `<div class="lb-title">${escapeHtml(title)}</div>` : ''}
+      ${lbTitleLineHTML(row)}
     </div>
     <div class="lb-score">${row.score}</div>
   </div>`;
@@ -3156,31 +3475,44 @@ function rRank(){
     const top = (S.rankData && S.rankData.top) || [];
     const me = S.rankData && S.rankData.me;
     const meInTop = me && top.some(r=>String(r.chat_id)===String(me.chat_id));
+    const duel = S.rankTab==='duel';
+    const rowFn = duel ? lbDuelRowHTML : lbRowHTML;
     if(!top.length){
-      body = `<div class="sub" style="text-align:center;margin-top:36px">Пока никто не закрывал врата ${S.rankPeriod==='week'?'на этой неделе':'сегодня'}. Будь первым.</div>`;
+      body = duel
+        ? `<div class="sub" style="text-align:center;margin-top:36px">За последние 7 дней никто не выходил на дуэль.<br>Проведи бой — и займёшь первое место.</div>`
+        : `<div class="sub" style="text-align:center;margin-top:36px">Пока никто не закрывал врата ${S.rankPeriod==='week'?'на этой неделе':'сегодня'}. Будь первым.</div>`;
     } else {
-      body = top.map(r=>lbRowHTML(r, String(r.chat_id)===String(chatId))).join('');
+      body = top.map(r=>rowFn(r, String(r.chat_id)===String(chatId))).join('');
       if(me && !meInTop){
-        body += `<div class="lb-divider">· · ·</div>` + lbRowHTML(me, true);
+        body += `<div class="lb-divider">· · ·</div>` + rowFn(me, true);
+      }
+      if(duel){
+        body = `<div class="sub" style="text-align:center;margin:0 0 10px;font-size:12.5px;opacity:.75">Лучшая минута за 7 дней · тапни по сопернику, чтобы вызвать его</div>` + body;
       }
     }
   }
   h(`<div class="screen">
-    <div class="hdr"><h2 style="margin:0">Рейтинг</h2></div>
-    <div class="tb-tabs">
-      <button class="${S.rankTab==='pushups'?'on':''}" onclick="setRankTab('pushups')">👊 Отжимания</button>
-      <button class="${S.rankTab==='squats'?'on':''}" onclick="setRankTab('squats')">🦵 Приседания</button>
-      <button class="${S.rankTab==='situps'?'on':''}" onclick="setRankTab('situps')">🛡 Пресс</button>
-    </div>
-    <div class="rank-period-wrap" style="position:relative;margin-top:8px">
-      <button class="toggle-row" style="width:auto;display:inline-flex;align-items:center;gap:8px;padding:10px 16px" onclick="togglePeriodMenu()">
-        <span>${S.rankPeriod==='week'?'Неделя':'День'}</span>
-        <span style="opacity:.6;font-size:11px;transform:${S.rankPeriodMenuOpen?'rotate(180deg)':'none'};transition:transform .15s ease">▾</span>
-      </button>
-      ${S.rankPeriodMenuOpen ? `<div style="position:absolute;top:100%;left:0;margin-top:6px;z-index:5;background:var(--panel-solid);border:1px solid var(--line);border-radius:14px;overflow:hidden;min-width:150px;box-shadow:0 12px 28px rgba(0,0,0,.45)">
-        <button style="display:block;width:100%;text-align:left;padding:12px 16px;background:none;border:none;color:var(--text);font-size:14.5px;font-weight:700;cursor:pointer" onclick="setRankPeriod('day')">День</button>
-        <button style="display:block;width:100%;text-align:left;padding:12px 16px;background:none;border:none;border-top:1px solid var(--line);color:var(--text);font-size:14.5px;font-weight:700;cursor:pointer" onclick="setRankPeriod('week')">Неделя</button>
-      </div>` : ''}
+    <div class="hdr"><h2 style="margin:0">Рейтинг</h2>${profileIconHTML()}</div>
+    <div style="display:flex;gap:8px;margin-top:4px;align-items:flex-start">
+      <div class="rank-menu" style="position:relative">
+        <button class="toggle-row" style="width:auto;display:inline-flex;align-items:center;gap:8px;padding:10px 16px" onclick="toggleRankTabMenu()">
+          <span>${RANK_TABS.find(t=>t.id===S.rankTab).label}</span>
+          <span style="opacity:.6;font-size:11px;transform:${S.rankTabMenuOpen?'rotate(180deg)':'none'};transition:transform .15s ease">▾</span>
+        </button>
+        ${S.rankTabMenuOpen ? `<div style="position:absolute;top:100%;left:0;margin-top:6px;z-index:6;background:var(--panel-solid);border:1px solid var(--line);border-radius:14px;overflow:hidden;min-width:172px;box-shadow:0 12px 28px rgba(0,0,0,.45)">
+          ${RANK_TABS.map((t,i)=>`<button style="display:block;width:100%;text-align:left;padding:12px 16px;background:none;border:none;${i?'border-top:1px solid var(--line);':''}color:var(--text);font-size:14.5px;font-weight:700;cursor:pointer" onclick="setRankTab('${t.id}')">${t.label}</button>`).join('')}
+        </div>` : ''}
+      </div>
+      ${S.rankTab==='duel' ? '' : `<div class="rank-menu" style="position:relative">
+        <button class="toggle-row" style="width:auto;display:inline-flex;align-items:center;gap:8px;padding:10px 16px" onclick="togglePeriodMenu()">
+          <span>${S.rankPeriod==='week'?'Неделя':'День'}</span>
+          <span style="opacity:.6;font-size:11px;transform:${S.rankPeriodMenuOpen?'rotate(180deg)':'none'};transition:transform .15s ease">▾</span>
+        </button>
+        ${S.rankPeriodMenuOpen ? `<div style="position:absolute;top:100%;left:0;margin-top:6px;z-index:5;background:var(--panel-solid);border:1px solid var(--line);border-radius:14px;overflow:hidden;min-width:150px;box-shadow:0 12px 28px rgba(0,0,0,.45)">
+          <button style="display:block;width:100%;text-align:left;padding:12px 16px;background:none;border:none;color:var(--text);font-size:14.5px;font-weight:700;cursor:pointer" onclick="setRankPeriod('day')">День</button>
+          <button style="display:block;width:100%;text-align:left;padding:12px 16px;background:none;border:none;border-top:1px solid var(--line);color:var(--text);font-size:14.5px;font-weight:700;cursor:pointer" onclick="setRankPeriod('week')">Неделя</button>
+        </div>` : ''}
+      </div>`}
     </div>
     <div style="margin-top:6px">${body}</div>
     <div style="flex:1"></div>
@@ -3264,6 +3596,10 @@ const Cam = {
   // Лучшая уверенность за весь сеанс и признак «уже пробовали WASM» —
   // на этом строится автопереход (см. maybeSwitchToWasm).
   bestEver:null, wasmTried:false, _backendSince:0, switching:false,
+  // Показывать ли техническую строку на калибровке. По умолчанию скрыта:
+  // обычному игроку она ничего не говорит, а место занимает. Включается
+  // долгим нажатием на шкалу калибровки — см. calibOverlayHTML().
+  diagVisible:false,
   // Момент последнего применения EMA к точкам скелета — нужен, чтобы считать
   // альфу от реально прошедшего времени, а не от номера кадра (см. drawSkeleton).
   _lastSmoothAt:0,
@@ -3395,6 +3731,10 @@ async function maybeSwitchToWasm(){
     try{ if(old && old.dispose) old.dispose(); }catch(e){}
     Cam.backend = (tf.getBackend && tf.getBackend()) || 'wasm';
     Cam.f32 = null; // на процессоре точность всегда полная, показывать нечего
+    // Запоминаем вывод: со следующего запуска стартуем сразу отсюда и не
+    // тратим первые секунды на заведомо нерабочий видеочип.
+    S.needWasm = true;
+    saveState();
     // Счётчики начинаем заново — старые относятся к другому вычислителю.
     Cam.bestEver = null; Cam.poseFps = 0; Cam._fpsCount = 0; Cam._fpsAt = 0;
     setCamStatus('Готово — можно начинать!');
@@ -3549,10 +3889,31 @@ async function startCamera(){
         tf.env().set('WEBGL_RENDER_FLOAT32_ENABLED', true);
       }
     }catch(e){ Cam.f32Capable = null; }
-    try{ await tf.setBackend('webgl'); }catch(e){ console.warn('поза: WebGL недоступен, откат на бэкенд по умолчанию', e); }
+    /* Если в прошлый раз выяснилось, что видеочип этого устройства считает
+       неверно, — не повторяем проверку, а сразу поднимаем вычисления на
+       процессоре. Иначе каждый заход во врата начинался бы с шести секунд
+       заведомо сломанного распознавания. */
+    let startedOnWasm = false;
+    if(S.needWasm){
+      try{
+        await loadScriptOnce(POSE_LIBS.wasm);
+        if(window.tf && tf.wasm && tf.wasm.setWasmPaths) tf.wasm.setWasmPaths(POSE_LIBS.wasmBinaries);
+        startedOnWasm = await tf.setBackend('wasm');
+      }catch(e){
+        console.warn('поза: не удалось стартовать на WASM, пробую видеочип', e);
+        startedOnWasm = false;
+      }
+    }
+    if(!startedOnWasm){
+      try{ await tf.setBackend('webgl'); }catch(e){ console.warn('поза: WebGL недоступен, откат на бэкенд по умолчанию', e); }
+    }
+    // Повторно проверять негодный видеочип незачем — решение уже принято.
+    Cam.wasmTried = startedOnWasm;
     await tf.ready();
     Cam.backend = (tf.getBackend && tf.getBackend()) || '?';
-    try{ Cam.f32 = !!tf.env().getBool('WEBGL_RENDER_FLOAT32_ENABLED'); }catch(e){ Cam.f32 = null; }
+    // На процессоре точность всегда полная — показывать «f32» там нечего.
+    if(startedOnWasm) Cam.f32 = null;
+    else { try{ Cam.f32 = !!tf.env().getBool('WEBGL_RENDER_FLOAT32_ENABLED'); }catch(e){ Cam.f32 = null; } }
     Cam.gpu = gpuRendererName();
     console.log('поза: бэкенд =', Cam.backend, '| float32 =', Cam.f32, '| GPU =', Cam.gpu);
     // enableSmoothing по умолчанию ВКЛЮЧЁН — внутри MoveNet работает свой
@@ -3934,7 +4295,10 @@ const DEPTH_TRIGGER = 0.55; // насколько нужно сместитьс�
 const DEPTH_RETURN  = 0.22; // насколько нужно вернуться к базовой позе, чтобы перевзвести
 function camLoop(){
   Cam.rafId = requestAnimationFrame(camLoop);
-  if(S.screen!=='raid' || !Cam.running || !Cam.detector || !Cam.videoEl) return;
+  // Цикл распознавания обслуживает два экрана: врата и дуэль. Всё, что ниже
+  // — общее (модель, скелет, углы), различается только КУДА уходит засчитанный
+  // повтор и чья калибровка идёт до старта.
+  if((S.screen!=='raid' && S.screen!=='duel') || !Cam.running || !Cam.detector || !Cam.videoEl) return;
   // Отрисовка отвязана от частоты распознавания позы — рисуем на каждый
   // кадр экрана (~60 к/с), используя последнюю распознанную позу. EMA-
   // сглаживание внутри drawSkeleton() при этом "доезжает" до неё за
@@ -4013,7 +4377,8 @@ function camLoop(){
         Cam._noPoseSince = 0;
         console.warn('поза: в канвас приходит пустой кадр — перехожу на подачу видео напрямую');
       }
-      if(S.raid && !S.raid.started) updateCalibration(null, null);
+      if(S.screen==='duel') duelCalibration(null);
+      else if(S.raid && !S.raid.started) updateCalibration(null, null);
       else maybeShowNoPoseHint();
       return;
     }
@@ -4050,7 +4415,10 @@ function camLoop(){
     // Скорости считаем по сырым измерениям и ровно один раз на ответ детектора
     // — отсюда берётся предсказание в drawSkeleton().
     updatePoseVelocity(pose.keypoints);
-    if(S.raid && !S.raid.started){ updateCalibration(angle, depth); return; }
+    if(S.screen==='duel'){
+      // В дуэли до старта минуты идёт своя калибровка, после — только счёт.
+      if(S.duel && S.duel.phase !== 'fight'){ duelCalibration(angle); return; }
+    } else if(S.raid && !S.raid.started){ updateCalibration(angle, depth); return; }
     let tracked = false;
     const th = REP_THRESH[ex];
 
@@ -4072,7 +4440,7 @@ function camLoop(){
         Cam.armState='down';
         const now=performance.now();
         if(now - Cam.lastRepAt > 450){
-          Cam.lastRepAt = now; setCamStatus('Повтор засчитан ✔ · вниз'); registerPush();
+          Cam.lastRepAt = now; setCamStatus('Повтор засчитан ✔ · вниз'); onCameraRep();
         }
       } else if(Cam.armState==='down' && Cam.upStreak>=REP_CONFIRM_FRAMES){
         Cam.armState='up'; setCamStatus('Вверху — опускайся вниз ↓ · '+Math.round(Cam.emaAngle)+'°');
@@ -4101,7 +4469,7 @@ function camLoop(){
           Cam.depthDisplaced = true;
           const now = performance.now();
           if(now - Cam.lastRepAt > 450){
-            Cam.lastRepAt = now; setCamStatus('Повтор засчитан ✔ · вниз'); registerPush();
+            Cam.lastRepAt = now; setCamStatus('Повтор засчитан ✔ · вниз'); onCameraRep();
           }
         }
       } else if(Math.abs(dev) < DEPTH_RETURN){
@@ -4155,7 +4523,7 @@ function manualPush(){
   if(now - manualPushLastAt < MANUAL_PUSH_COOLDOWN_MS) return;
   manualPushLastAt = now;
   markManualBtnCooling();
-  registerPush();
+  registerPush('manual');
 }
 /* Гасим кнопку на время паузы. Без этого нажатие просто молча не срабатывает,
    и человек решает, что приложение зависло, — а так видно, что идёт откат. */
@@ -4339,8 +4707,9 @@ function startRaid(track, id){
   }
   trackEvent('raid_start', g.rank + '/' + g.stage);
   const mobs = g.mobs.map((m,i)=>({ ...m, n:i+1, hp:m.maxHp }));
-  // Повторное прохождение уже закрытых врат не даёт наград — иначе можно фармить
-  // опыт бесконечно, просто переигрывая пройденный контент.
+  // Повторное прохождение уже закрытых врат не даёт НАГРАД (опыт, уровни) —
+  // иначе можно фармить опыт бесконечно, просто переигрывая пройденный контент.
+  // На счётчики повторов этот флаг не влияет: см. registerPush().
   const replay = doneGatesForTrack(track).includes(g.id);
   const hpMax = hpMaxFor(S.level);
   S.raid = { gate:g, track, mobs, idx:0, replay, hp:hpMax, hpMax,
@@ -4476,8 +4845,8 @@ function calibOverlayHTML(r){
   return `<div class="raid-calib" id="raidCalib" data-state="${r.calibState}">
     <div class="raid-calib-label" id="raidCalibLabel">${calibLabelFor(r.calibState)}</div>
     <div class="raid-calib-countdown" id="raidCalibCountdown">${r.calibState==='countdown' ? (r.countdownVal||'') : ''}</div>
-    <div class="raid-calib-bar"><i id="raidCalibFill" style="width:${r.calibPct||0}%"></i></div>
-    <div class="raid-calib-diag" id="raidCalibDiag">${escapeHtml(camDiagText())}</div>
+    <div class="raid-calib-bar" onpointerdown="startDiagHold()" onpointerup="cancelDiagHold()" onpointercancel="cancelDiagHold()" onpointerleave="cancelDiagHold()"><i id="raidCalibFill" style="width:${r.calibPct||0}%"></i></div>
+    <div class="raid-calib-diag ${Cam.diagVisible?'':'hidden'}" id="raidCalibDiag">${Cam.diagVisible ? escapeHtml(camDiagText()) : ''}</div>
     <div class="raid-calib-sub">${jointsHint}</div>
     <div class="raid-calib-distance">${distanceHint}</div>
     <div class="raid-calib-distance">Работай в спокойном темпе — так ${exName} считаются точнее</div>
@@ -4503,7 +4872,9 @@ function updateCalibOverlayDOM(r){
   // Нагрузка на модель от позы не зависит, так что цифра, снятая на
   // калибровке, честно отражает и то, что будет во время упражнения.
   const diagEl = document.getElementById('raidCalibDiag');
-  if(diagEl) diagEl.textContent = camDiagText();
+  // Пересобираем текст только пока строка открыта: незачем считать её на
+  // каждый кадр калибровки у всех пользователей.
+  if(diagEl && Cam.diagVisible) diagEl.textContent = camDiagText();
 }
 /* Сводка состояния распознавания одной строкой. Нужна не для игрока, а для
    разбора жалоб с чужих телефонов: человек присылает один скриншот экрана
@@ -4511,6 +4882,28 @@ function updateCalibOverlayDOM(r){
    не загрузились библиотеки, не поднялся WebGL, не пошло видео, или видео
    идёт, но модель не находит в кадре человека. Без этого каждый такой
    случай приходится разбирать вслепую. */
+/* Техническая строка нужна только при разборе жалоб, и показывать её всем
+   незачем — обычному игроку она ничего не сообщает. Открывается долгим
+   нажатием на шкалу калибровки: жест неочевидный, случайно не сработает, а
+   объяснить его человеку по переписке — одна фраза.
+   Повторное долгое нажатие прячет обратно. */
+const DIAG_HOLD_MS = 1200;
+let diagHoldT = null;
+function startDiagHold(){
+  cancelDiagHold();
+  diagHoldT = setTimeout(()=>{
+    diagHoldT = null;
+    Cam.diagVisible = !Cam.diagVisible;
+    if(S.settings.vibration) hapticImpact('medium');
+    const r = S.raid;
+    if(r) updateCalibOverlayDOM(r);
+    const el = document.getElementById('raidCalibDiag');
+    if(el) el.classList.toggle('hidden', !Cam.diagVisible);
+  }, DIAG_HOLD_MS);
+}
+function cancelDiagHold(){
+  if(diagHoldT){ clearTimeout(diagHoldT); diagHoldT = null; }
+}
 function camDiagText(){
   const parts = [];
   if(!Cam.libsOk) parts.push('модуль: не загружен');
@@ -4611,15 +5004,17 @@ function rRaid(){
   const ex = mobExercise(m);
   const exLbl = exerciseLabel(ex);
   const gateColor = g.gateColor==='red' ? 'var(--danger)' : g.gateColor==='gold' ? 'var(--gold)' : 'var(--sys)';
-  // Мини-очередь в правом верхнем углу — только 2 БЛИЖАЙШИХ моба впереди (не
-  // вся пройденная история захода, как раньше в .mob-queue — камере на весь
-  // экран просто некуда её деть), плюс "+N" на тех, кто дальше в очереди.
-  const upcoming = r.mobs.slice(r.idx+1, r.idx+3);
-  const remainAfter = Math.max(0, r.mobs.length - r.idx - 1 - upcoming.length);
-  const miniQueue = upcoming.map(mm=>{
-    const mmLbl = exerciseLabel(mobExercise(mm));
-    return `<div class="raid-mini-mob ${mm.isBoss?'boss '+g.gateColor:''}">${mobVisual(mm.kind,22,mm.name)}<span class="qmob-ex" title="${mmLbl.name}">${mmLbl.icon}</span></div>`;
-  }).join('') + (remainAfter>0 ? `<div class="raid-mini-more">+${remainAfter}</div>` : '');
+  /* Очередь волны точками. Раньше здесь были аватары двух ближайших мобов и
+     "+N" на остальных — на полноэкранной камере больше просто не помещалось,
+     и человек не видел ни сколько пройдено, ни сколько осталось.
+     Точки решают ровно эту задачу: влезает волна любой длины, а места уходит
+     меньше, чем на два аватара. Пройденные погашены, текущий подсвечен,
+     босс крупнее и золотой — то есть по одному взгляду понятно и место в
+     волне, и что впереди ждёт босс. */
+  const queueDots = r.mobs.map((mm,i)=>{
+    const state = i < r.idx ? 'done' : (i === r.idx ? 'now' : 'next');
+    return `<span class="raid-qdot ${state}${mm.isBoss?' boss':''}"></span>`;
+  }).join('');
   const camInner = Cam.error
     ? `<div class="cam-fallback">⚠️ ${escapeHtml(Cam.error)}<div class="sub" style="margin-top:6px;font-size:12px">Используй кнопку «+» внизу — так повторение засчитывается вручную.</div></div>`
     : `<video id="raidVideo" autoplay playsinline muted></video><canvas id="raidCanvas"></canvas><div class="cam-status" id="camStatus">Включаю сканер Системы…</div>`;
@@ -4628,10 +5023,10 @@ function rRaid(){
       ${(!r.started && !Cam.error) ? calibOverlayHTML(r) : ''}
     </div>
     <button class="raid-back" onclick="go('map')">‹</button>
-    ${miniQueue ? `<div class="raid-mini-queue">${miniQueue}</div>` : ''}
+    ${queueDots ? `<div class="raid-mini-queue">${queueDots}</div>` : ''}
     <div class="raid-top-panel">
       ${(g.stage==='exam' && (EXAM_XP_MULT[g.rank]||1)>1) ? `<div class="raid-banner exam"><b>⚡ БОНУС СИСТЕМЫ</b> · Экзамен даёт ×${EXAM_XP_MULT[g.rank]} опыта за подход.</div>` : ''}
-      ${r.replay ? `<div class="raid-banner replay">ℹ️ Повторное прохождение — опыт и повторения за этот заход не засчитываются.</div>` : ''}
+      ${r.replay ? `<div class="raid-banner replay">ℹ️ Повторное прохождение — опыт за этот заход не начисляется. Повторы идут в профиль как обычно.</div>` : ''}
       <div class="raid-mob-card">
         <div class="mob-art" id="mobArt" style="border-color:${gateColor}">${mobVisual(m.kind,120,m.name)}</div>
         <div class="raid-gate-tag" style="color:${gateColor}">${g.stage==='exam'?'ЭКЗАМЕН':g.stage==='trial'?'ИСПЫТАНИЕ':'ВРАТА '+g.rank} · ${g.name.toUpperCase()}</div>
@@ -4642,11 +5037,17 @@ function rRaid(){
       </div>
     </div>
     <div class="raid-counter-row">
-      <button class="raid-side-btn retreat" onclick="retreatRaid()" aria-label="Отступить">🚪</button>
+      <div class="raid-side-col">
+        <button class="raid-side-btn retreat" onclick="retreatRaid()" aria-label="Отступить">🚪</button>
+        <span class="raid-side-label">Отступить</span>
+      </div>
       <div class="raid-counter-col">
         ${repCounterHTML()}
       </div>
-      <button class="raid-side-btn manual" onclick="manualPush()" aria-label="Засчитать вручную">+</button>
+      <div class="raid-side-col">
+        <button class="raid-side-btn manual" onclick="manualPush()" aria-label="Засчитать вручную">+</button>
+        <span class="raid-side-label gold">Не считает?</span>
+      </div>
     </div>
     <div class="raid-player-hp-row">
       <div class="hp-strip player"><i id="playerHpFill" style="width:${Math.max(0,r.hp/r.hpMax*100)}%"></i><span id="playerHpNum">${r.hp} / ${r.hpMax}</span></div>
@@ -4677,7 +5078,13 @@ function ensureDay(){
   if(S.todayDate !== today){
     S.pushToday = 0;
     S.pushupsToday = 0; S.squatsToday = 0; S.situpsToday = 0;
-    if(new Date().getDay()===1){ S.pushWeek = 0; S.pushupsWeek = 0; S.squatsWeek = 0; S.situpsWeek = 0; } // понедельник — новая неделя
+    // Камерные счётчики сбрасываются вместе с обычными — иначе «за сегодня»
+    // у них означало бы разные периоды, и сравнивать их было бы нельзя.
+    S.pushupsCamToday = 0; S.squatsCamToday = 0; S.situpsCamToday = 0;
+    if(new Date().getDay()===1){
+      S.pushWeek = 0; S.pushupsWeek = 0; S.squatsWeek = 0; S.situpsWeek = 0;
+      S.pushupsCamWeek = 0; S.squatsCamWeek = 0; S.situpsCamWeek = 0;
+    } // понедельник — новая неделя
     S.todayDate = today;
   }
 }
@@ -4685,23 +5092,46 @@ function ensureDay(){
 /* Каждый распознанный камерой повтор = 1 удар по мобу (1 отжимание = 1 урон).
    XP начисляется одним куском в момент убийства моба (как и раньше), чтобы не
    ломать округлением аккуратно откалиброванный EXAM_XP_MULT по рангам. */
-function registerPush(){
+/* source — откуда пришёл повтор: 'cam' (распознан камерой) или 'manual'
+   (кнопка «+»). Параметр обязателен и передаётся явно всеми тремя вызовами:
+   значение по умолчанию тут было бы опасным — при добавлении нового источника
+   повторы молча попали бы не в ту корзину, и обнаружилось бы это только по
+   испорченному рейтингу. */
+function registerPush(source){
   const r=S.raid; if(!r) return;
   if(!r.started) return; // идёт отсчёт перед боем — повторы ещё не считаются
   const m=r.mobs[r.idx]; if(!m || m.hp<=0) return;
+  const byCam = source === 'cam';
   m.hp = Math.max(0, m.hp-1);
   // Первый засчитанный повтор захода — самый важный шаг воронки: он
   // отделяет «вошёл во врата» от «распознавание реально сработало».
-  if(!r.reps) trackEvent('rep_first', Cam.running ? 'cam' : 'manual');
+  if(!r.reps) trackEvent('rep_first', byCam ? 'cam' : 'manual');
   r.reps = (r.reps||0) + 1; // счётчик за весь заход — растёт независимо от replay/наград
+  // Отдельный счётчик захода — понадобится режиму с призраком, где в зачёт
+  // идут только камерные повторы.
+  if(byCam) r.repsCam = (r.repsCam||0) + 1;
   updateRepCounterDOM();
-  if(!r.replay){
-    S.totalPush++; S.pushToday++; S.pushWeek++;
-    // Та же сумма, но раздельно по упражнению — см. "Прогресс повторений" в
-    // профиле (rProfile()), где отжимания и приседания считаются отдельно.
-    if(mobExercise(m)==='squat'){ S.squatsTotal++; S.squatsToday++; S.squatsWeek++; }
-    else if(mobExercise(m)==='situp'){ S.situpsTotal++; S.situpsToday++; S.situpsWeek++; }
-    else { S.pushupsTotal++; S.pushupsToday++; S.pushupsWeek++; }
+  /* Счётчики повторов растут ВСЕГДА, в том числе в повторном прохождении.
+     Раньше здесь стояло if(!r.replay) — вместе с блокировкой опыта, — и люди,
+     закрывшие много врат, гоняли старые вообще без следа в профиле.
+     Блокировать опыт в реплее необходимо: иначе уровень фармится бесконечным
+     перезаходом в лёгкие врата. Но счётчик отжиманий защищать не от чего — это
+     дневник реальной физической работы, и отжимание в повторных вратах ничем
+     не отличается от любого другого. Та же логика уже действует для смерти и
+     отступления: там повторы тоже не откатываются (см. snapshot в startRaid()).
+     Камерные счётчики идут парой к обычным и растут только при byCam. */
+  S.totalPush++; S.pushToday++; S.pushWeek++;
+  // Та же сумма, но раздельно по упражнению — см. "Прогресс повторений" в
+  // профиле (rProfile()), где отжимания и приседания считаются отдельно.
+  if(mobExercise(m)==='squat'){
+    S.squatsTotal++; S.squatsToday++; S.squatsWeek++;
+    if(byCam){ S.squatsCamTotal++; S.squatsCamToday++; S.squatsCamWeek++; }
+  } else if(mobExercise(m)==='situp'){
+    S.situpsTotal++; S.situpsToday++; S.situpsWeek++;
+    if(byCam){ S.situpsCamTotal++; S.situpsCamToday++; S.situpsCamWeek++; }
+  } else {
+    S.pushupsTotal++; S.pushupsToday++; S.pushupsWeek++;
+    if(byCam){ S.pushupsCamTotal++; S.pushupsCamToday++; S.pushupsCamWeek++; }
   }
   updateRaidDOM();
   if(S.settings.vibration) hapticImpact(m.hp<=0 ? 'heavy' : 'medium');
@@ -5022,6 +5452,446 @@ function pluralRuClient(n, forms){
   return forms[2];
 }
 
+/* ============ АРЕНА ТЕНЕЙ (бой с записью соперника) ============
+   Минута отжиманий против записи прошлого захода. Соперник не сидит сейчас с
+   телефоном — мы храним МОМЕНТЫ его повторов и воспроизводим их как тикающий
+   счётчик. Со стороны игрока это неотличимо от живого боя, но ждать никого не
+   нужно и никакой инфраструктуры реального времени не требуется.
+   В зачёт идут только повторы, распознанные камерой: за результат даётся
+   рейтинг, а кнопка ручного счёта дала бы до сорока нажатий в минуту. */
+const DUEL_SECONDS = 60;
+const DUEL_API_URL = 'https://vrata-bot.emerald520for.workers.dev/api/duel';
+// Отсчёт перед стартом минуты — время встать в упор после калибровки.
+const DUEL_COUNTDOWN_S = 3;
+
+function startDuel(rated){
+  if(!Cam.running && Cam.error){ showToast('Дуэль требует камеры'); return; }
+  S.duel = {
+    phase:'calib',            // calib -> countdown -> fight -> отправка результата
+    rated: rated !== false,
+    reps: 0,
+    timeline: [],             // моменты своих повторов, десятые доли секунды
+    ghost: (S.duelState && S.duelState.ghost) || null,
+    ghostReps: 0,
+    ghostPtr: 0,              // указатель по дорожке призрака, чтобы не искать заново
+    calibState:'searching', calibPct:0, stableSince:null, calibStart:null,
+    countdownVal: DUEL_COUNTDOWN_S,
+    startedAt: 0,
+  };
+  go('duel');
+}
+
+/* Калибровка перед минутой. Отдельная от врат и намеренно проще: там нужно
+   поймать сложные ракурсы трёх упражнений, здесь всегда отжимания.
+   Главное — минута НЕ начинается, пока Система не увидела человека: иначе
+   первые секунды съедаются постановкой телефона, а они самые дорогие. */
+function duelCalibration(angle){
+  const d = S.duel;
+  if(!d || d.phase !== 'calib') return;
+  const now = performance.now();
+  if(d.calibStart == null) d.calibStart = now;
+  if(angle != null){
+    if(d.stableSince == null) d.stableSince = now;
+    const held = now - d.stableSince;
+    d.calibPct = Math.min(100, Math.round(held / CALIB_STABLE_MS * 100));
+    d.calibState = held >= CALIB_STABLE_MS ? 'ready' : 'holding';
+  } else {
+    d.stableSince = null; d.calibPct = 0; d.calibState = 'searching';
+  }
+  updateDuelCalibDOM();
+  if(d.calibState === 'ready') startDuelCountdown();
+}
+function startDuelCountdown(){
+  const d = S.duel; if(!d || d.phase !== 'calib') return;
+  d.phase = 'countdown';
+  d.countdownVal = DUEL_COUNTDOWN_S;
+  d.calibState = 'countdown';
+  updateDuelCalibDOM();
+  clearInterval(S._duelCountT);
+  S._duelCountT = setInterval(()=>{
+    const dd = S.duel;
+    if(!dd || dd.phase !== 'countdown'){ clearInterval(S._duelCountT); return; }
+    dd.countdownVal--;
+    if(dd.countdownVal <= 0){ clearInterval(S._duelCountT); beginDuelFight(); }
+    else updateDuelCalibDOM();
+  }, 1000);
+}
+function beginDuelFight(){
+  const d = S.duel; if(!d) return;
+  d.phase = 'fight';
+  d.startedAt = performance.now();
+  if(S.settings.vibration) hapticImpact('heavy');
+  render();
+  clearInterval(S._duelTickT);
+  // 100 мс — счётчик призрака должен тикать плавно, а не рывками раз в секунду.
+  S._duelTickT = setInterval(duelTick, 100);
+}
+/* Ход времени: двигаем таймер и счётчик призрака. Призрак «догоняется»
+   указателем — на каждом тике проверяем только новые моменты, а не всю
+   дорожку заново. */
+function duelTick(){
+  const d = S.duel;
+  if(!d || d.phase !== 'fight'){ clearInterval(S._duelTickT); return; }
+  const elapsedDs = Math.floor((performance.now() - d.startedAt) / 100);
+  if(d.ghost && d.ghost.timeline){
+    while(d.ghostPtr < d.ghost.timeline.length && d.ghost.timeline[d.ghostPtr] <= elapsedDs){
+      d.ghostPtr++; d.ghostReps++;
+    }
+  }
+  updateDuelDOM(elapsedDs);
+  if(elapsedDs >= DUEL_SECONDS * 10){ clearInterval(S._duelTickT); finishDuel(); }
+}
+/* Засчитанный камерой повтор. Во время дуэли уходит сюда, в остальных
+   случаях — в обычный счётчик врат (см. camLoop). */
+function onCameraRep(){
+  if(S.screen === 'duel'){
+    const d = S.duel;
+    if(!d || d.phase !== 'fight') return;   // до старта и после финиша не считаем
+    const ds = Math.floor((performance.now() - d.startedAt) / 100);
+    if(ds > DUEL_SECONDS * 10) return;
+    d.reps++;
+    d.timeline.push(ds);
+    if(S.settings.vibration) hapticImpact('medium');
+    updateDuelDOM(ds);
+    return;
+  }
+  registerPush('cam');
+}
+/* Экран режима. Открывается с карточки на карте и держит всё, что относится
+   к дуэлям: рекорд, рейтинг, остаток попыток и запуск боя.
+   Состояние приходит с сервера — там источник правды по лимитам и рейтингу.
+   Пока запрос идёт, показываем последнее известное, чтобы экран не мигал
+   пустотой при каждом заходе. */
+function loadDuelState(){
+  if(!TG || !TG.initData){ S.duelLoading = false; render(); return; }
+  S.duelLoading = true;
+  fetch(DUEL_API_URL, { headers:{ 'X-Init-Data':TG.initData } })
+    .then(r=>{ if(!r.ok) throw new Error('bad'); return r.json(); })
+    .then(st=>{
+      // Дорожку призрака сервер отдаёт строкой — разбираем один раз здесь,
+      // чтобы в бою не парсить её на каждом тике.
+      if(st.ghost && typeof st.ghost.timeline === 'string'){
+        st.ghost.timeline = st.ghost.timeline ? st.ghost.timeline.split(',').map(Number) : [];
+      }
+      S.duelState = st; S.duelLoading = false; S.duelError = false; render();
+    })
+    .catch(()=>{ S.duelLoading = false; S.duelError = true; render(); });
+}
+/* Запрос соперника. Лимитов не тратит: человек должен иметь возможность
+   посмотреть, кто ему достался, не рискуя попыткой. Но и перебирать нельзя —
+   назначенный соперник держится до боя, повторный запрос вернёт того же. */
+function findDuelOpponent(){
+  if(!TG || !TG.initData || S.duelFinding) return;
+  S.duelFinding = true; render();
+  fetch(DUEL_API_URL, {
+    method:'POST',
+    headers:{'Content-Type':'application/json', 'X-Init-Data':TG.initData},
+    body: JSON.stringify({ action:'find' }),
+  })
+  .then(r=>r.json())
+  .then(j=>{
+    if(j && j.state){
+      if(j.state.ghost && typeof j.state.ghost.timeline === 'string'){
+        j.state.ghost.timeline = j.state.ghost.timeline ? j.state.ghost.timeline.split(',').map(Number) : [];
+      }
+      S.duelState = j.state;
+    }
+    if(j && j.none) showToast('Пока не с кем — заходов других охотников ещё нет');
+    S.duelFinding = false; render();
+  })
+  .catch(()=>{ S.duelFinding = false; showToast('Нет связи с Системой'); render(); });
+}
+function rDuelHome(){
+  const st = S.duelState;
+  const loading = S.duelLoading && !st;
+  const ratedLeft = st ? st.ratedLeft : 0;
+  const trainLeft = st ? st.trainLeft : 0;         // -1 означает «без ограничения»
+  const canRated = ratedLeft > 0;
+  const canTrain = trainLeft !== 0;
+  const resetTxt = st && st.resetAt ? duelResetText(st.resetAt) : '';
+  h(`<div class="screen">
+    <div class="hdr" style="width:100%">
+      <div style="width:40px"></div>
+      <div class="gp-toptag" style="color:#B08BE0">АРЕНА ТЕНЕЙ</div>
+      ${profileIconHTML()}
+    </div>
+
+    ${loading ? `<div class="sub" style="margin-top:40px">Загружаю…</div>` : ''}
+    ${(!loading && S.duelError && !st) ? `<div class="sub" style="margin-top:40px">Нет связи с Системой. Потяни вниз или зайди позже.</div>` : ''}
+
+    ${st ? `
+    <div class="duel-hero">
+      <div class="duel-hero-num">${st.best7 || '—'}</div>
+      <div class="duel-hero-cap">лучшая минута за 7 дней</div>
+    </div>
+
+    <div class="duel-stats">
+      <div class="duel-stat"><div class="v">${st.rating}</div><div class="k">рейтинг</div></div>
+      <div class="duel-stat"><div class="v">${st.wins}</div><div class="k">побед</div></div>
+      <div class="duel-stat"><div class="v">${st.losses}</div><div class="k">поражений</div></div>
+    </div>
+
+    <div class="duel-limits">
+      <div class="duel-limit-row">
+        <span>Рейтинговых дуэлей</span>
+        <b class="${canRated?'ok':'off'}">${ratedLeft}</b>
+      </div>
+      <div class="duel-limit-row">
+        <span>Тренировочных</span>
+        <b class="${canTrain?'ok':'off'}">${trainLeft < 0 ? '∞' : trainLeft}</b>
+      </div>
+      ${resetTxt ? `<div class="duel-limit-note">${resetTxt}</div>` : ''}
+    </div>
+
+    <div class="duel-opponent ${st.oppKind==='rival'?'rival':''}">
+      ${st.ghost
+        ? `<div class="duel-opp-tag">СОПЕРНИК</div>
+           <div class="duel-opp-name">${st.oppKind==='rival' ? escapeHtml(st.ghost.name||'Охотник') : 'Твоя тень'}</div>
+           <div class="duel-opp-sub">${st.ghost.reps} ${pluralRuClient(st.ghost.reps,['повторение','повторения','повторений'])} · ${duelAgoText(st.ghost.createdAt)}</div>`
+        : `<div class="duel-opp-tag">СОПЕРНИКА НЕТ</div>
+           <div class="duel-opp-sub">Первый заход задаёт эталон. Дальше будешь бежать против него.</div>`}
+      ${(st.oppKind !== 'rival' && st.rivalsAvailable)
+        ? `<button class="duel-find" onclick="findDuelOpponent()" ${S.duelFinding?'disabled':''}>${S.duelFinding?'Ищу…':'Найти соперника'}</button>`
+        : ''}
+      ${st.oppKind === 'rival'
+        ? `<div class="duel-opp-note">Случайный подбор второй раз не сработает, но соперника можно выбрать самому — «Рейтинг» → вкладка «Арена», тап по строке.</div>`
+        : ''}
+    </div>
+
+    <div class="bottom" style="width:100%">
+      ${canRated
+        ? `<button class="btn" onclick="startDuel(true)">Начать дуэль</button>`
+        : canTrain
+          ? `<button class="btn ghost" onclick="startDuel(false)">Тренировочный заход</button>`
+          : `<button class="btn" disabled style="opacity:.45">На сегодня всё</button>`}
+      ${(canRated && canTrain) ? `<button class="gp-btn2" onclick="startDuel(false)">Тренировочный заход</button>` : ''}
+      ${(!canRated && !canTrain && !isSubActive()) ? `<div class="sub" style="margin-top:10px;font-size:12px">По «Контракту Охотника» — 6 рейтинговых в день и тренировочные без ограничения.</div>` : ''}
+    </div>` : ''}
+    <div style="flex:1"></div>
+    ${navBar('duel')}
+  </div>`);
+}
+/* «Обновится в 08:00» — время берём из строки, которую посчитал сервер по
+   выбранному человеком времени напоминания. Показываем в его часовом поясе. */
+function duelResetText(iso){
+  const ms = Date.parse(iso);
+  if(!Number.isFinite(ms)) return '';
+  const d = new Date(ms);
+  const hh = String(d.getHours()).padStart(2,'0');
+  const mm = String(d.getMinutes()).padStart(2,'0');
+  return `Обновится в ${hh}:${mm}`;
+}
+function duelAgoText(iso){
+  const ms = Date.parse(iso);
+  if(!Number.isFinite(ms)) return '';
+  const h = Math.floor((Date.now() - ms) / 3600000);
+  if(h < 1) return 'меньше часа назад';
+  if(h < 24) return h + ' ' + pluralRuClient(h, ['час','часа','часов']) + ' назад';
+  const d = Math.floor(h / 24);
+  return d + ' ' + pluralRuClient(d, ['день','дня','дней']) + ' назад';
+}
+
+function rDuel(){
+  const d = S.duel;
+  if(!d){ go('map'); return; }
+  const camInner = Cam.error
+    ? `<div class="cam-fallback">⚠️ ${escapeHtml(Cam.error)}<div class="sub" style="margin-top:6px;font-size:12px">Дуэль засчитывает только повторы, распознанные камерой.</div></div>`
+    : `<video id="raidVideo" autoplay playsinline muted></video><canvas id="raidCanvas"></canvas><div class="cam-status" id="camStatus">Включаю сканер Системы…</div>`;
+  // Над счётчиком — имя того, с кем дерёшься. Чужой соперник должен быть
+  // назван: безличный «призрак» не создаёт ощущения, ради которого всё это.
+  const ghostName = !d.ghost ? 'НЕТ СОПЕРНИКА'
+    : (d.ghost.name ? escapeHtml(String(d.ghost.name).toUpperCase()).slice(0,14) : 'ТВОЙ РЕКОРД');
+  h(`<div class="screen raid-fullbleed">
+    <div class="cam-wrap" id="camWrap">${camInner}
+      ${(d.phase !== 'fight' && !Cam.error) ? duelCalibHTML(d) : ''}
+    </div>
+    <button class="raid-back" onclick="abortDuel()">‹</button>
+
+    <div class="duel-top">
+      <div class="duel-side me">
+        <div class="duel-side-tag">ТЫ</div>
+        <div class="duel-side-num" id="duelMyReps">${d.reps}</div>
+      </div>
+      <div class="duel-timer" id="duelTimer">0:${String(DUEL_SECONDS).padStart(2,'0')}</div>
+      <div class="duel-side ghost">
+        <div class="duel-side-tag">${ghostName}</div>
+        <div class="duel-side-num" id="duelGhostReps">${d.ghost ? d.ghostReps : '—'}</div>
+      </div>
+    </div>
+
+    <div class="duel-bottom">
+      <div class="duel-hint" id="duelHint">${d.phase==='fight' ? 'Отжимайся!' : 'Встань в упор — минута начнётся, когда Система тебя увидит'}</div>
+      <!-- Стрелка «назад» в углу — маленький безымянный кружок поверх видео;
+           с пола, между повторами, его не найти. Во время боя нужен явный,
+           подписанный выход. -->
+      <button class="duel-quit" onclick="abortDuel()">Прервать дуэль</button>
+    </div>
+  </div>`);
+  attachCamRefs();
+  if(!Cam.running && !Cam.error) startCamera();
+}
+/* Оверлей калибровки и отсчёта. Проще, чем во вратах: там подсказки под три
+   упражнения и разные ракурсы, здесь всегда отжимания. */
+function duelCalibHTML(d){
+  return `<div class="raid-calib" id="duelCalib" data-state="${d.calibState}">
+    <div class="raid-calib-label" id="duelCalibLabel">${calibLabelFor(d.calibState)}</div>
+    <div class="raid-calib-countdown" id="duelCalibCount">${d.phase==='countdown' ? d.countdownVal : ''}</div>
+    <div class="raid-calib-bar"><i id="duelCalibFill" style="width:${d.calibPct||0}%"></i></div>
+    <div class="raid-calib-sub">Положи телефон на пол экраном на себя, на уровне груди</div>
+    <div class="raid-calib-distance">В дуэли считает только камера — кнопки ручного счёта здесь нет</div>
+  </div>`;
+}
+/* Точечное обновление вместо полной перерисовки: во время минуты экран
+   меняется десять раз в секунду, а перерисовка пересоздала бы видео и канвас
+   камеры — распознавание бы срывалось. Та же причина, что у updateRaidDOM. */
+function updateDuelCalibDOM(){
+  const d = S.duel; if(!d) return;
+  const wrap = document.getElementById('duelCalib');
+  if(wrap) wrap.dataset.state = d.calibState;
+  const lab = document.getElementById('duelCalibLabel');
+  if(lab) lab.textContent = calibLabelFor(d.calibState);
+  const cnt = document.getElementById('duelCalibCount');
+  if(cnt) cnt.textContent = d.phase==='countdown' ? String(d.countdownVal) : '';
+  const fill = document.getElementById('duelCalibFill');
+  if(fill) fill.style.width = (d.calibPct||0) + '%';
+}
+function updateDuelDOM(elapsedDs){
+  const d = S.duel; if(!d) return;
+  const my = document.getElementById('duelMyReps');
+  if(my) my.textContent = d.reps;
+  const gh = document.getElementById('duelGhostReps');
+  if(gh && d.ghost) gh.textContent = d.ghostReps;
+  const t = document.getElementById('duelTimer');
+  if(t){
+    const left = Math.max(0, DUEL_SECONDS - Math.floor((elapsedDs||0)/10));
+    t.textContent = '0:' + String(left).padStart(2,'0');
+    t.classList.toggle('low', left <= 10);
+  }
+  // Кто ведёт — подсвечиваем, чтобы это читалось боковым зрением с пола.
+  const meBox = document.querySelector('.duel-side.me');
+  const ghBox = document.querySelector('.duel-side.ghost');
+  if(meBox && ghBox && d.ghost){
+    meBox.classList.toggle('lead', d.reps > d.ghostReps);
+    ghBox.classList.toggle('lead', d.ghostReps > d.reps);
+  }
+}
+/* Досрочный выход из боя.
+   Первые DUEL_FREE_ABORT_S секунд — бесплатно: технический сбой почти всегда
+   виден именно там (камера не завелась, скелет не появился, человек не в
+   кадре), и наказывать за него нельзя.
+   Дальше попытка списывается. Без этого выход превращается в способ обойти
+   лимит: увидел на пятидесятой секунде, что идёшь хуже призрака, вышел, начал
+   заново — и три попытки в день перестают что-либо значить.
+   Результат прерванного захода не сохраняется в любом случае: он не идёт ни в
+   таблицу, ни в призраки, и рейтинг не меняет. */
+const DUEL_FREE_ABORT_S = 15;
+function abortDuel(){
+  const d = S.duel;
+  const elapsedS = (d && d.phase === 'fight') ? (performance.now() - d.startedAt) / 1000 : 0;
+  if(elapsedS < DUEL_FREE_ABORT_S){ doAbortDuel(false); return; }
+  sysConfirm('Выйти из дуэли? Попытка будет засчитана, результат не сохранится.', ()=>doAbortDuel(true));
+}
+function doAbortDuel(spendAttempt){
+  const d = S.duel;
+  stopDuelTimers();
+  S.duel = null;
+  // Сообщаем серверу только о платном выходе: он спишет попытку, но ничего
+  // не сохранит. Ответ не ждём — человек уже уходит с экрана.
+  if(spendAttempt && d && d.rated && TG && TG.initData){
+    try{
+      fetch(DUEL_API_URL, {
+        method:'POST',
+        headers:{'Content-Type':'application/json', 'X-Init-Data':TG.initData},
+        body: JSON.stringify({ name:S.ans.name, reps:0, timeline:'', rated:true, aborted:true }),
+      }).then(r=>r.json()).then(j=>{ if(j && j.state) S.duelState = j.state; }).catch(()=>{});
+    }catch(e){}
+  }
+  go('map');
+}
+function stopDuelTimers(){
+  clearInterval(S._duelCountT); clearInterval(S._duelTickT);
+  S._duelCountT = null; S._duelTickT = null;
+}
+/* Минута кончилась. Отправляем результат вместе с дорожкой моментов — именно
+   она служит доказательством, что повторы делались, а не были заявлены.
+   Исход боя и начисление рейтинга считает сервер: он же знает настоящего
+   соперника и остаток лимитов. Клиент лишь показывает то, что вернули. */
+function finishDuel(){
+  const d = S.duel; if(!d) return;
+  stopDuelTimers();
+  d.phase = 'done';
+  if(S.settings.vibration) hapticImpact('heavy');
+  S.duelResult = { pending:true, reps:d.reps, ghostReps:d.ghost ? d.ghost.reps : null };
+  go('duelResult');
+  if(!TG || !TG.initData){
+    S.duelResult = { ...S.duelResult, pending:false, error:'Результат сохраняется только внутри Telegram' };
+    render();
+    return;
+  }
+  fetch(DUEL_API_URL, {
+    method:'POST',
+    headers:{'Content-Type':'application/json', 'X-Init-Data':TG.initData},
+    body: JSON.stringify({
+      name: S.ans.name, reps: d.reps,
+      timeline: d.timeline.join(','), rated: d.rated,
+    }),
+  })
+  .then(r=>r.json().then(j=>({ ok:r.ok, j })))
+  .then(({ok, j})=>{
+    if(!ok){
+      S.duelResult = { ...S.duelResult, pending:false,
+        error: j && j.error === 'limit' ? 'Дуэли на сегодня закончились' : 'Не удалось сохранить результат' };
+    } else {
+      S.duelState = j.state || S.duelState;
+      S.duelResult = { ...S.duelResult, pending:false, outcome:j.outcome, delta:j.delta,
+        rating:j.rating, rated:j.rated, ghostReps:j.ghostReps, oppName:j.oppName };
+    }
+    S.duel = null;
+    render();
+  })
+  .catch(()=>{
+    S.duelResult = { ...S.duelResult, pending:false, error:'Нет связи — результат не сохранён' };
+    S.duel = null;
+    render();
+  });
+}
+/* Экран итога. На этом шаге он намеренно простой — оформление и разбор боя
+   доделываются вместе с экраном режима. */
+function rDuelResult(){
+  const r = S.duelResult || {};
+  const title = r.pending ? 'Минута окончена'
+    : r.error ? 'Результат не засчитан'
+    : r.outcome === 'win' ? 'ПОБЕДА'
+    : r.outcome === 'loss' ? 'ПОРАЖЕНИЕ'
+    : r.outcome === 'draw' ? 'НИЧЬЯ'
+    : 'ЗАХОД ЗАСЧИТАН';
+  h(`<div class="screen reveal">
+    <div class="syswin" style="width:100%"><div class="sys-tag"><span class="bang">!</span> ДУЭЛЬ</div>
+      <div style="font-size:15px">${escapeHtml(title)}</div>
+    </div>
+    <div class="duel-result-nums">
+      <div><div class="duel-side-tag">ТЫ</div><div class="duel-result-num">${r.reps ?? 0}</div></div>
+      <div class="duel-result-vs">против</div>
+      <div><div class="duel-side-tag">${r.oppName ? escapeHtml(String(r.oppName).toUpperCase()).slice(0,14) : 'ТЕНЬ'}</div><div class="duel-result-num ghost">${r.ghostReps ?? '—'}</div></div>
+    </div>
+    ${r.pending ? `<div class="sub">Сохраняю результат…</div>` : ''}
+    ${r.error ? `<div class="sub" style="color:var(--danger)">${escapeHtml(r.error)}</div>` : ''}
+    ${(!r.pending && !r.error) ? `<div class="sub" style="font-size:14px">
+      ${r.rated ? `Рейтинг ${r.delta>0?'+'+r.delta:r.delta} → <b class="gold">${r.rating}</b>` : 'Тренировочный заход — рейтинг не изменился'}
+    </div>` : ''}
+    <div class="bottom" style="width:100%">
+      <button class="btn" onclick="openDuelHome()">Ещё раз</button>
+      <button class="gp-btn2" onclick="go('map')">К карте</button>
+    </div>
+  </div>`);
+}
+/* Вход в режим: обновляем состояние с сервера при каждом открытии — лимиты и
+   рейтинг могли измениться на другом устройстве или после прошлого захода. */
+function openDuelHome(){
+  go('duelHome');
+  loadDuelState();
+}
+
 function rVictory(){
   const g=S.raid.gate;
   const total = S.raid.mobs.reduce((a,m)=>a+m.maxHp,0);
@@ -5039,7 +5909,7 @@ function rVictory(){
     </div>` : ''}
     ${titleUnlockHTML()}
     <div class="loot">
-      <div class="card"><div class="v">+${total}</div><div class="k">${S.raid.replay?'повт. (повтор)':'повторений'}</div></div>
+      <div class="card"><div class="v">+${total}</div><div class="k">повторений</div></div>
       <div class="card"><div class="v">+${S.raid.xpGained||0}</div><div class="k">опыта</div></div>
       <div class="card"><div class="v">${S.justStreakInc?'+1':S.streak}</div><div class="k">${S.justStreakInc?'к стрику 🔥':'стрик, дн. 🔥'}</div></div>
     </div>
@@ -5117,7 +5987,7 @@ function rProfile(){
       <div class="sub" style="font-size:14px">Призыв во врата: <b class="cy">${a.time||'—'}</b>. Выполни рейд сегодня, чтобы сохранить стрик.</div>
     </div>
     <div style="flex:1"></div>
-    ${navBar('profile')}
+    ${navBar('')}
   </div>`);
 }
 function rankProgressHTML(){
@@ -5398,6 +6268,9 @@ function resetProgress(){
     stopCombatTick();
     stopRaidCountdown();
     S.level=1; S.xp=0; S.streak=0; S.totalPush=0; S.pushToday=0; S.pushWeek=0;
+    S.pushupsCamTotal=0; S.pushupsCamToday=0; S.pushupsCamWeek=0;
+    S.squatsCamTotal=0; S.squatsCamToday=0; S.squatsCamWeek=0;
+    S.situpsCamTotal=0; S.situpsCamToday=0; S.situpsCamWeek=0;
     S.pushupsTotal=0; S.pushupsToday=0; S.pushupsWeek=0; S.squatsTotal=0; S.squatsToday=0; S.squatsWeek=0;
     S.situpsTotal=0; S.situpsToday=0; S.situpsWeek=0;
     S.currentTrack='strength'; S.doneGates=[]; S.doneGatesEndurance=[]; S.doneGatesCore=[];
@@ -5434,6 +6307,10 @@ function boot(){
   if(hasProfile) syncReminder(); // на случай если прошлая отправка не долетела
   trackOpen();
   checkSubscription(); // тихо обновляем статус "Контракта Охотника" — см. checkSubscription()
+  // Состояние дуэлей на старте больше не грузим: карточка с карты убрана, а
+  // экран Арены сам вызывает loadDuelState() при каждом открытии
+  // (см. openDuelHome()). Запрос на каждый запуск приложения был бы потрачен
+  // впустую у всех, кто в режим вообще не заходит.
   startPresenceHeartbeat();
 }
 boot();
